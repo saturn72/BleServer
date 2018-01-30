@@ -7,5 +7,6 @@ namespace BleServer.Common.Services.BLE
     public interface IBluetoothLEService
     {
         Task<IEnumerable<BluetoothLEDevice>> GetDevices();
+        Task<BluetoothLEDevice> GetDeviceById(string deviceId);
     }
 }

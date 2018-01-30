@@ -25,13 +25,12 @@ namespace BleServer.Common.Tests.Services.BLE
         public async Task BluetoothLEServiceTests_GetDevices(IEnumerable<BluetoothLEDevice> devices)
         {
             var bleAdapter = new Mock<IBleAdapter>();
-            bleAdapter.Setup(b => b.GetDiscoveredDevices()).Returns(Task.FromResult(devices));
+            bleAdapter.Setup(b => b.GetDiscoveredDevices()).Returns(devices);
             var srv = new BluetoothLEService(bleAdapter.Object);
             var res = await srv.GetDevices();
             res.ShouldNotBeNull();
             res.Any().ShouldBeFalse();
         }
         #endregion
-
     }
 }

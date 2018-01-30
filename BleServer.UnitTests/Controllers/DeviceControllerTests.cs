@@ -9,7 +9,7 @@ using Moq;
 using Shouldly;
 using Xunit;
 
-namespace BleServer.UnitTests.Controllers
+namespace BleServer.WebApi.Tests.Controllers
 {
     public class DeviceControllerTests
     {
@@ -59,5 +59,36 @@ namespace BleServer.UnitTests.Controllers
         }
 
         #endregion
+
+        #region DeviceController_GetDeviceById
+
+        [Fact]
+        public async Task DeviceController_GetDeviceById_NotFoundInEmptyCollection()
+        {
+            var bleSrv = new Mock<IBluetoothLEService>();
+            bleSrv.Setup(bs => bs.GetDeviceById(It.IsAny<string>())).Returns(Task.FromResult(null as BluetoothLEDevice));
+            var ctrl = new DeviceController(bleSrv.Object);
+            var deviceId = "id";
+            var res = await ctrl.GetDeviceByIdAsync(deviceId);
+            var t = res.ShouldBeOfType<NotFoundObjectResult>();
+            (t.Value as string).Contains(deviceId);
+        }
+        [Fact]
+        public async Task DeviceController_GetDevices_ReturnsDevice()
+        {
+            var deviceId = "id_1";
+            var srvResponse = new BluetoothLEDevice {Id = deviceId, Name = "name_1"};
+
+            var bleSrv = new Mock<IBluetoothLEService>();
+            bleSrv.Setup(bs => bs.GetDeviceById(It.IsAny<string>())).Returns(Task.FromResult(srvResponse));
+            var ctrl = new DeviceController(bleSrv.Object);
+            var res = await ctrl.GetDeviceByIdAsync(deviceId);
+            var t = res.ShouldBeOfType<OkObjectResult>();
+            t.Value.ShouldBe(srvResponse);
+        }
+
+        #endregion
+
+
     }
 }

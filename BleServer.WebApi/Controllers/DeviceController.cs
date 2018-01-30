@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Linq;
+using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using BleServer.Common.Domain;
 using BleServer.Common.Services.BLE;
@@ -18,8 +19,21 @@ namespace BleServer.WebApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllDevicesAsync()
         {
-            var devices = await _blutoothLEservice.GetDevices() ?? new BluetoothLEDevice[]{};
+            var devices = await _blutoothLEservice.GetDevices() ?? new BluetoothLEDevice[] { };
             return Ok(devices);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetDeviceByIdAsync(string id)
+        {
+            var device = await _blutoothLEservice.GetDeviceById(id);
+            return device != null ?
+                Ok(device) :
+                NotFound(new
+                {
+                    message = "Failed to find bluetooth device",
+                    @id = id
+                }) as IActionResult;
         }
     }
 }

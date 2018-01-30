@@ -13,6 +13,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore" Version="2.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.2" />
+    <PackageReference Include="Microsoft.aspnetcore.StaticFiles" Version="2.0.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="1.1.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,16 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BleServer.Common\BleServer.Common.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="System.Runtime.WindowsRuntime">
-      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETCore\v4.5\System.Runtime.WindowsRuntime.dll</HintPath>
-    </Reference>
-    <Reference Include="Windows">
-      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.16299.0\Windows.winmd</HintPath>
-      <IsWinMDFile>true</IsWinMDFile>
-    </Reference>
+    <ProjectReference Include="..\Modules\BleServer.Modules.Win10BleAdapter\BleServer.Modules.Win10BleAdapter.csproj" />
   </ItemGroup>
 
 </Project>

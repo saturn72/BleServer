@@ -17,7 +17,12 @@ namespace BleServer.Common.Services.BLE
 #endregion 
         public async Task<IEnumerable<BluetoothLEDevice>> GetDevices()
         {
-            return await _bleAdapter.GetDiscoveredDevices() ?? new BluetoothLEDevice[]{};
+            return await Task.FromResult(_bleAdapter.GetDiscoveredDevices() ?? new BluetoothLEDevice[]{});
+        }
+
+        public Task<BluetoothLEDevice> GetDeviceById(string deviceId)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

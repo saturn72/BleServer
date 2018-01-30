@@ -4,9 +4,14 @@
     <TargetFramework>net471</TargetFramework>
 
     <IsPackable>false</IsPackable>
+
+    <AssemblyName>BleServer.WebApi.Tests</AssemblyName>
+
+    <RootNamespace>BleServer.WebApi.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="fastJSON" Version="2.1.28" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
     <PackageReference Include="moq" Version="4.8.1" />
     <PackageReference Include="shouldly" Version="3.0.0" />
