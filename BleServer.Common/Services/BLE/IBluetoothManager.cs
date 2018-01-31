@@ -6,5 +6,6 @@ namespace BleServer.Common.Services.BLE
     public interface IBluetoothManager
     {
         IEnumerable<BluetoothDevice> GetDiscoveredDevices();
+        IEnumerable<BluetoothService> GetDeviceServices(string deviceId);
     }
 }

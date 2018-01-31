@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using BleServer.Common.Domain;
 
 namespace BleServer.Common.Services.BLE
 {
-    public class BluetoothManager : IBluetoothManager
+    public partial class BluetoothManager : IBluetoothManager
     {
         #region Fields
 
         private static object lockObject = new object();
         private readonly IEnumerable<IBluetoothAdapter> _bleAdapters;
-        protected static readonly IDictionary<string, BluetoothDevice> Devices = new Dictionary<string, BluetoothDevice>();
+        protected static readonly IDictionary<string, ProxiesBluetoothDevice> Devices = new Dictionary<string, ProxiesBluetoothDevice>();
         #endregion
 
         #region ctor
@@ -30,7 +31,7 @@ namespace BleServer.Common.Services.BLE
             lock (lockObject)
             {
                 if (!Devices.ContainsKey(deviceId))
-                    Devices[deviceId] = device;
+                    Devices[deviceId] = new ProxiesBluetoothDevice(sender, device);
             }
         }
         
@@ -38,7 +39,12 @@ namespace BleServer.Common.Services.BLE
 
         public virtual IEnumerable<BluetoothDevice> GetDiscoveredDevices()
         {
-            return Devices.Values;
+            return Devices.Values.Select(v=>v.Device);
+        }
+
+        public IEnumerable<BluetoothService> GetDeviceServices(string deviceId)
+        {
+            throw new NotImplementedException("GetDeviceServices");
         }
     }
 }

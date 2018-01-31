@@ -27,5 +27,10 @@ namespace BleServer.Common.Services.BLE
             var allDevices = await GetDevices();
             return allDevices.FirstOrDefault(x => x.Id == deviceId);
         }
+
+        public Task<ServiceResponse<IEnumerable<BluetoothGattService>>> GetGattServicesByDeviceId(string deviceId)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

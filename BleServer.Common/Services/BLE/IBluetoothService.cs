@@ -8,5 +8,6 @@ namespace BleServer.Common.Services.BLE
     {
         Task<IEnumerable<BluetoothDevice>> GetDevices();
         Task<BluetoothDevice> GetDeviceById(string deviceId);
+        Task<ServiceResponse<IEnumerable<BluetoothGattService>>> GetGattServicesByDeviceId(string deviceId);
     }
 }

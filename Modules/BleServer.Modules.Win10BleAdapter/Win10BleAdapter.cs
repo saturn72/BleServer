@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth.Advertisement;
 using BleServer.Common.Services.BLE;
 using Windows.Devices.Bluetooth;
+using BleServer.Common.Domain;
 
 namespace BleServer.Modules.Win10BleAdapter
 {
@@ -11,7 +13,9 @@ namespace BleServer.Modules.Win10BleAdapter
         #region fields
 
         private readonly BluetoothLEAdvertisementWatcher _bleWatcher;
+        private readonly IDictionary<string, BluetoothLEDevice> _devices = new Dictionary<string, BluetoothLEDevice>();
 
+        private object lockObj = new object();
         #endregion
 
         #region ctor
@@ -33,7 +37,15 @@ namespace BleServer.Modules.Win10BleAdapter
                     if (bleDevice == null)
                         return;
 
+                    var bleDeviceId = bleDevice.DeviceId;
+                    
+                    lock (lockObj)
+                    {
+                        if (!_devices.ContainsKey(bleDeviceId))
+                            _devices[bleDeviceId] = bleDevice;
+                    }
                     OnDevicediscovered(new BluetoothDeviceEventArgs(bleDevice.ToDomainModel()));
+                   
                 };
             return bleWatcher;
         }
@@ -61,6 +73,17 @@ namespace BleServer.Modules.Win10BleAdapter
         public void Start()
         {
             _bleWatcher.Start();
+        }
+
+        public IEnumerable<BluetoothGattService> GetGattServices(string deviceId)
+        {
+
+            if (_devices.ContainsKey(deviceId))
+            {
+                var t = _devices[deviceId].GetGattServicesAsync();
+                throw new NotImplementedException();
+            }
+            throw new InvalidOperationException("The provided device Id does not exist in collection: " + deviceId);
         }
 
         public event BluetoothDeviceEventHandler DeviceDiscovered;

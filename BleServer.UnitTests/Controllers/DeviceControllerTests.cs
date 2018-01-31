@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BleServer.Common.Domain;
+using BleServer.Common.Services;
 using BleServer.Common.Services.BLE;
 using BleServer.WebApi.Controllers;
 using Microsoft.AspNetCore.Mvc;
@@ -23,7 +25,8 @@ namespace BleServer.WebApi.Tests.Controllers
 
         [Theory]
         [MemberData(nameof(EmptyBluetooLEDeviceCollection))]
-        public async Task DeviceController_GetDevices_ReturnsEmptyCollectionFromservice(IEnumerable<BluetoothDevice> devices)
+        public async Task DeviceController_GetDevices_ReturnsEmptyCollectionFromservice(
+            IEnumerable<BluetoothDevice> devices)
         {
             var bleSrv = new Mock<IBluetoothService>();
             bleSrv.Setup(bs => bs.GetDevices()).Returns(Task.FromResult(devices));
@@ -34,15 +37,16 @@ namespace BleServer.WebApi.Tests.Controllers
             d.ShouldNotBeNull();
             d.Count().ShouldBe(0);
         }
+
         [Fact]
         public async Task DeviceController_GetDevices_ReturnsCollectionFromService()
         {
             var serviceDevices = new[]
             {
-                new BluetoothDevice{Id = "id_1",Name = "name_1"},
-                new BluetoothDevice{Id = "id_2",Name = "name_2"},
-                new BluetoothDevice{Id = "id_3",Name = "name_3"},
-                new BluetoothDevice{Id = "id_4",Name = "name_4"},
+                new BluetoothDevice {Id = "id_1", Name = "name_1"},
+                new BluetoothDevice {Id = "id_2", Name = "name_2"},
+                new BluetoothDevice {Id = "id_3", Name = "name_3"},
+                new BluetoothDevice {Id = "id_4", Name = "name_4"},
             } as IEnumerable<BluetoothDevice>;
 
             var bleSrv = new Mock<IBluetoothService>();
@@ -84,7 +88,7 @@ namespace BleServer.WebApi.Tests.Controllers
         public async Task DeviceController_GetDevices_ReturnsDevice()
         {
             var deviceId = "id_1";
-            var srvResponse = new BluetoothDevice { Id = deviceId, Name = "name_1" };
+            var srvResponse = new BluetoothDevice {Id = deviceId, Name = "name_1"};
 
             var bleSrv = new Mock<IBluetoothService>();
             bleSrv.Setup(bs => bs.GetDeviceById(It.IsAny<string>())).Returns(Task.FromResult(srvResponse));
@@ -96,6 +100,57 @@ namespace BleServer.WebApi.Tests.Controllers
 
         #endregion
 
+        #region DeviceController_GetDeviceById
+
+        [Fact]
+        public async Task DeviceController_GetGattServicesByDeviceId_DeviceNotExists()
+        {
+            var srvRes = new ServiceResponse<IEnumerable<BluetoothGattService>>
+            {
+                Result = ServiceResponseResult.NotFound
+            };
+            var bleSrv = new Mock<IBluetoothService>();
+            bleSrv.Setup(bs => bs.GetGattServicesByDeviceId(It.IsAny<string>())).Returns(Task.FromResult(srvRes));
+            var ctrl = new DeviceController(bleSrv.Object);
+            var deviceId = "id";
+            var res = await ctrl.GetGattServicesByDeviceId(deviceId);
+
+            var t = res.ShouldBeOfType<NotFoundObjectResult>();
+            GetPropertyValue(t.Value, "id").ShouldBe(deviceId);
+        }
+
+        [Theory]
+        [MemberData(nameof(DeviceController_GetGattServicesByDeviceId_ReturnsServices_Data))]
+        public async Task DeviceController_GetGattServicesByDeviceId_ReturnsServices(IEnumerable<BluetoothGattService> data)
+        {
+            var srvRes = new ServiceResponse<IEnumerable<BluetoothGattService>>
+            {
+                Result = ServiceResponseResult.Success,
+                Data = data
+            };
+            var bleSrv = new Mock<IBluetoothService>();
+            bleSrv.Setup(bs => bs.GetGattServicesByDeviceId(It.IsAny<string>())).Returns(Task.FromResult(srvRes));
+            var ctrl = new DeviceController(bleSrv.Object);
+            var deviceId = "id";
+            var res = await ctrl.GetGattServicesByDeviceId(deviceId);
+            var t = res.ShouldBeOfType<OkObjectResult>();
+            (t.Value as IEnumerable<BluetoothGattService>).Count().ShouldBe(data.Count());
+        }
+
+        public static IEnumerable<object[]> DeviceController_GetGattServicesByDeviceId_ReturnsServices_Data =>
+            new[]
+            {
+                null,
+                new object[]
+                {
+                    new BluetoothGattService {Name = "some-gatt-service-name-1"},
+                    new BluetoothGattService {Name = "some-gatt-service-name-2"},
+                    new BluetoothGattService {Name = "some-gatt-service-name-3"},
+                    new BluetoothGattService {Name = "some-gatt-service-name-4"},
+                }
+            };
+
+        #endregion
 
     }
 }

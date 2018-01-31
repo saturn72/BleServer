@@ -40,6 +40,11 @@ namespace BleServer.Common.Tests.Services.BLE
             DeviceDiscovered(this, bdea);
         }
 
+        public IEnumerable<BluetoothGattService> GetGattServices(string deviceId)
+        {
+            throw new NotImplementedException();
+        }
+
         public event BluetoothDeviceEventHandler DeviceDiscovered;
     }
 }
