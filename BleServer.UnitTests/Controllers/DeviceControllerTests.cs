@@ -71,13 +71,20 @@ namespace BleServer.WebApi.Tests.Controllers
             var deviceId = "id";
             var res = await ctrl.GetDeviceByIdAsync(deviceId);
             var t = res.ShouldBeOfType<NotFoundObjectResult>();
-            (t.Value as string).Contains(deviceId);
+            GetPropertyValue(t.Value, "id").ShouldBe(deviceId);
         }
+
+        private object GetPropertyValue(object obj, string propertyName)
+        {
+            var pi = obj.GetType().GetProperty(propertyName);
+            return pi.GetValue(obj);
+        }
+
         [Fact]
         public async Task DeviceController_GetDevices_ReturnsDevice()
         {
             var deviceId = "id_1";
-            var srvResponse = new BluetoothLEDevice {Id = deviceId, Name = "name_1"};
+            var srvResponse = new BluetoothLEDevice { Id = deviceId, Name = "name_1" };
 
             var bleSrv = new Mock<IBluetoothLEService>();
             bleSrv.Setup(bs => bs.GetDeviceById(It.IsAny<string>())).Returns(Task.FromResult(srvResponse));
