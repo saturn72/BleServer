@@ -3,8 +3,8 @@ using BleServer.Common.Domain;
 
 namespace BleServer.Common.Services.BLE
 {
-    public interface IBleAdapter
+    public interface IBluetoothManager
     {
-        IEnumerable<BluetoothLEDevice> GetDiscoveredDevices();
+        IEnumerable<BluetoothDevice> GetDiscoveredDevices();
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using BleServer.Common.Domain;
@@ -9,9 +10,9 @@ namespace BleServer.WebApi.Controllers
     [Route("api/[controller]")]
     public class DeviceController : Controller
     {
-        private readonly IBluetoothLEService _blutoothLEservice;
+        private readonly IBluetoothService _blutoothLEservice;
 
-        public DeviceController(IBluetoothLEService blutoothLEservice)
+        public DeviceController(IBluetoothService blutoothLEservice)
         {
             _blutoothLEservice = blutoothLEservice;
         }
@@ -19,7 +20,7 @@ namespace BleServer.WebApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllDevicesAsync()
         {
-            var devices = await _blutoothLEservice.GetDevices() ?? new BluetoothLEDevice[] { };
+            var devices = await _blutoothLEservice.GetDevices() ?? new BluetoothDevice[] { };
             return Ok(devices);
         }
 
@@ -35,5 +36,11 @@ namespace BleServer.WebApi.Controllers
                     @id = id
                 }) as IActionResult;
         }
+
+        //[HttpGet("services/{id}")]
+        //public async Task<IActionResult> GetDeviceBluetoothService(string id)
+        //{
+        //    throw new NotImplementedException("Getdevice Services");
+        //}
     }
 }

@@ -18,19 +18,19 @@ namespace BleServer.WebApi.Tests.Controllers
         public static IEnumerable<object[]> EmptyBluetooLEDeviceCollection => new[]
         {
             new object[] {null},
-            new object[] {new BluetoothLEDevice[] { }},
+            new object[] {new BluetoothDevice[] { }},
         };
 
         [Theory]
         [MemberData(nameof(EmptyBluetooLEDeviceCollection))]
-        public async Task DeviceController_GetDevices_ReturnsEmptyCollectionFromservice(IEnumerable<BluetoothLEDevice> devices)
+        public async Task DeviceController_GetDevices_ReturnsEmptyCollectionFromservice(IEnumerable<BluetoothDevice> devices)
         {
-            var bleSrv = new Mock<IBluetoothLEService>();
+            var bleSrv = new Mock<IBluetoothService>();
             bleSrv.Setup(bs => bs.GetDevices()).Returns(Task.FromResult(devices));
             var ctrl = new DeviceController(bleSrv.Object);
             var res = await ctrl.GetAllDevicesAsync();
             var t = res.ShouldBeOfType<OkObjectResult>();
-            var d = t.Value as IEnumerable<BluetoothLEDevice>;
+            var d = t.Value as IEnumerable<BluetoothDevice>;
             d.ShouldNotBeNull();
             d.Count().ShouldBe(0);
         }
@@ -39,18 +39,18 @@ namespace BleServer.WebApi.Tests.Controllers
         {
             var serviceDevices = new[]
             {
-                new BluetoothLEDevice{Id = "id_1",Name = "name_1"},
-                new BluetoothLEDevice{Id = "id_2",Name = "name_2"},
-                new BluetoothLEDevice{Id = "id_3",Name = "name_3"},
-                new BluetoothLEDevice{Id = "id_4",Name = "name_4"},
-            } as IEnumerable<BluetoothLEDevice>;
+                new BluetoothDevice{Id = "id_1",Name = "name_1"},
+                new BluetoothDevice{Id = "id_2",Name = "name_2"},
+                new BluetoothDevice{Id = "id_3",Name = "name_3"},
+                new BluetoothDevice{Id = "id_4",Name = "name_4"},
+            } as IEnumerable<BluetoothDevice>;
 
-            var bleSrv = new Mock<IBluetoothLEService>();
+            var bleSrv = new Mock<IBluetoothService>();
             bleSrv.Setup(bs => bs.GetDevices()).Returns(Task.FromResult(serviceDevices));
             var ctrl = new DeviceController(bleSrv.Object);
             var res = await ctrl.GetAllDevicesAsync();
             var t = res.ShouldBeOfType<OkObjectResult>();
-            var retDevices = t.Value as IEnumerable<BluetoothLEDevice>;
+            var retDevices = t.Value as IEnumerable<BluetoothDevice>;
             retDevices.ShouldNotBeNull();
             retDevices.Count().ShouldBe(serviceDevices.Count());
 
@@ -65,8 +65,8 @@ namespace BleServer.WebApi.Tests.Controllers
         [Fact]
         public async Task DeviceController_GetDeviceById_NotFoundInEmptyCollection()
         {
-            var bleSrv = new Mock<IBluetoothLEService>();
-            bleSrv.Setup(bs => bs.GetDeviceById(It.IsAny<string>())).Returns(Task.FromResult(null as BluetoothLEDevice));
+            var bleSrv = new Mock<IBluetoothService>();
+            bleSrv.Setup(bs => bs.GetDeviceById(It.IsAny<string>())).Returns(Task.FromResult(null as BluetoothDevice));
             var ctrl = new DeviceController(bleSrv.Object);
             var deviceId = "id";
             var res = await ctrl.GetDeviceByIdAsync(deviceId);
@@ -84,9 +84,9 @@ namespace BleServer.WebApi.Tests.Controllers
         public async Task DeviceController_GetDevices_ReturnsDevice()
         {
             var deviceId = "id_1";
-            var srvResponse = new BluetoothLEDevice { Id = deviceId, Name = "name_1" };
+            var srvResponse = new BluetoothDevice { Id = deviceId, Name = "name_1" };
 
-            var bleSrv = new Mock<IBluetoothLEService>();
+            var bleSrv = new Mock<IBluetoothService>();
             bleSrv.Setup(bs => bs.GetDeviceById(It.IsAny<string>())).Returns(Task.FromResult(srvResponse));
             var ctrl = new DeviceController(bleSrv.Object);
             var res = await ctrl.GetDeviceByIdAsync(deviceId);

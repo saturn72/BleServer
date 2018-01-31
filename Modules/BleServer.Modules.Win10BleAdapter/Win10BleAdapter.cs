@@ -1,22 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth.Advertisement;
-using BleServer.Common.Domain;
 using BleServer.Common.Services.BLE;
-using Win10BluetoothLEDevice = Windows.Devices.Bluetooth.BluetoothLEDevice;
+using Windows.Devices.Bluetooth;
 
 namespace BleServer.Modules.Win10BleAdapter
 {
-    public class Win10BleAdapter: IBleAdapter
+    public class Win10BleAdapter : IBluetoothAdapter
     {
         #region fields
 
-        private static object lockObject = new object();
-
         private readonly BluetoothLEAdvertisementWatcher _bleWatcher;
-        private readonly IDictionary<string, Win10BluetoothLEDevice> _discoveredDevices;
 
         #endregion
 
@@ -25,7 +19,6 @@ namespace BleServer.Modules.Win10BleAdapter
         public Win10BleAdapter()
         {
             _bleWatcher = InitBleWatcher();
-            _discoveredDevices = new Dictionary<string, Win10BluetoothLEDevice>();
         }
 
         private BluetoothLEAdvertisementWatcher InitBleWatcher()
@@ -35,47 +28,41 @@ namespace BleServer.Modules.Win10BleAdapter
                 ScanningMode = BluetoothLEScanningMode.Active
             };
             bleWatcher.Received += async (w, btAdv) =>
-            {
-                try
                 {
-                    var device = await Win10BluetoothLEDevice.FromBluetoothAddressAsync(btAdv.BluetoothAddress);
-
-                    if (device == null)
-                    {
+                    var bleDevice = await ExtractBleDevice(btAdv);
+                    if (bleDevice == null)
                         return;
-                    }
 
-                    await Task.Run(() => AddBlueToothLeDeviceIfNotExists(device));
-                }
-                catch (Exception ex)
-                {
-                }
-            };
+                    OnDevicediscovered(new BluetoothDeviceEventArgs(bleDevice.ToDomainModel()));
+                };
             return bleWatcher;
         }
 
-        private void AddBlueToothLeDeviceIfNotExists(Win10BluetoothLEDevice device)
+        protected virtual void OnDevicediscovered(BluetoothDeviceEventArgs args)
         {
-            var deviceId = device.BluetoothDeviceId.Id;
-            lock (lockObject)
-            {
-                if (!_discoveredDevices.ContainsKey(deviceId))
-                    _discoveredDevices[deviceId] = device;
-            }
+            DeviceDiscovered?.Invoke(this, args);
         }
-        #endregion
 
-        public IEnumerable<BluetoothLEDevice> GetDiscoveredDevices()
+        private async Task<BluetoothLEDevice> ExtractBleDevice(BluetoothLEAdvertisementReceivedEventArgs btAdv)
         {
-            lock (lockObject)
+            try
             {
-                return _discoveredDevices.Values.Select(v => v.ToDomainModel());
+                return await BluetoothLEDevice.FromBluetoothAddressAsync(btAdv.BluetoothAddress);
+            }
+            catch (Exception)
+            {
+                return null;
             }
         }
+    
+
+        #endregion
 
         public void Start()
         {
             _bleWatcher.Start();
         }
+
+        public event BluetoothDeviceEventHandler DeviceDiscovered;
     }
 }
