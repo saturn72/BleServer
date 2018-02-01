@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using BleServer.Common.Domain;
-using BleServer.Common.Services.BLE;
+using BleServer.Common.Services.Ble;
 using Moq;
 using Shouldly;
 using Xunit;
@@ -16,8 +16,8 @@ namespace BleServer.Common.Tests.Services.BLE
         {
             var dummyAdapter = new DummyBluetoothAdapter();
 
-            var bm = new BluetoothManager(new[] {dummyAdapter});
-            var device = new BluetoothDevice
+            var bm = new BleManager(new[] {dummyAdapter});
+            var device = new BleDevice
             {
                 Id = "some-device-id",
                 Name = "Some-device-Name"
@@ -32,15 +32,15 @@ namespace BleServer.Common.Tests.Services.BLE
         }
     }
 
-    public class DummyBluetoothAdapter : IBluetoothAdapter
+    public class DummyBluetoothAdapter : IBleAdapter
     {
-        internal void RaiseDeviceDiscoveredEvent(BluetoothDevice device)
+        internal void RaiseDeviceDiscoveredEvent(BleDevice device)
         {
-            var bdea = new BluetoothDeviceEventArgs(device);
+            var bdea = new BleDeviceEventArgs(device);
             DeviceDiscovered(this, bdea);
         }
 
-        public IEnumerable<BluetoothGattService> GetGattServices(string deviceId)
+        public IEnumerable<BleGattService> GetGattServices(string deviceId)
         {
             throw new NotImplementedException();
         }

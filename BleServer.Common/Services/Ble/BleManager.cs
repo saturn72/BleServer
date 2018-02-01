@@ -3,20 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using BleServer.Common.Domain;
 
-namespace BleServer.Common.Services.BLE
+namespace BleServer.Common.Services.Ble
 {
-    public partial class BluetoothManager : IBluetoothManager
+    public partial class BleManager : IBleManager
     {
         #region Fields
 
         private static object lockObject = new object();
-        private readonly IEnumerable<IBluetoothAdapter> _bleAdapters;
+        private readonly IEnumerable<IBleAdapter> _bleAdapters;
         protected static readonly IDictionary<string, ProxiesBluetoothDevice> Devices = new Dictionary<string, ProxiesBluetoothDevice>();
         #endregion
 
         #region ctor
 
-        public BluetoothManager(IEnumerable<IBluetoothAdapter> bleAdapters)
+        public BleManager(IEnumerable<IBleAdapter> bleAdapters)
         {
             _bleAdapters = bleAdapters;
 
@@ -24,7 +24,7 @@ namespace BleServer.Common.Services.BLE
                 adapter.DeviceDiscovered += DeviceDiscoveredHandler;
         }
 
-        private static void DeviceDiscoveredHandler(IBluetoothAdapter sender, BluetoothDeviceEventArgs args)
+        private static void DeviceDiscoveredHandler(IBleAdapter sender, BleDeviceEventArgs args)
         {
             var device = args.Device;
             var deviceId = device.Id;
@@ -37,12 +37,12 @@ namespace BleServer.Common.Services.BLE
         
         #endregion
 
-        public virtual IEnumerable<BluetoothDevice> GetDiscoveredDevices()
+        public virtual IEnumerable<BleDevice> GetDiscoveredDevices()
         {
             return Devices.Values.Select(v=>v.Device);
         }
 
-        public IEnumerable<BluetoothService> GetDeviceServices(string deviceId)
+        public IEnumerable<BleService> GetDeviceServices(string deviceId)
         {
             throw new NotImplementedException("GetDeviceServices");
         }

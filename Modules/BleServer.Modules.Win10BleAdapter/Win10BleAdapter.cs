@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth.Advertisement;
-using BleServer.Common.Services.BLE;
+using BleServer.Common.Services.Ble;
 using Windows.Devices.Bluetooth;
 using BleServer.Common.Domain;
 
 namespace BleServer.Modules.Win10BleAdapter
 {
-    public class Win10BleAdapter : IBluetoothAdapter
+    public class Win10BleAdapter : IBleAdapter
     {
         #region fields
 
@@ -44,13 +44,13 @@ namespace BleServer.Modules.Win10BleAdapter
                         if (!_devices.ContainsKey(bleDeviceId))
                             _devices[bleDeviceId] = bleDevice;
                     }
-                    OnDevicediscovered(new BluetoothDeviceEventArgs(bleDevice.ToDomainModel()));
+                    OnDevicediscovered(new BleDeviceEventArgs(bleDevice.ToDomainModel()));
                    
                 };
             return bleWatcher;
         }
 
-        protected virtual void OnDevicediscovered(BluetoothDeviceEventArgs args)
+        protected virtual void OnDevicediscovered(BleDeviceEventArgs args)
         {
             DeviceDiscovered?.Invoke(this, args);
         }
@@ -75,7 +75,7 @@ namespace BleServer.Modules.Win10BleAdapter
             _bleWatcher.Start();
         }
 
-        public IEnumerable<BluetoothGattService> GetGattServices(string deviceId)
+        public IEnumerable<BleGattService> GetGattServices(string deviceId)
         {
 
             if (_devices.ContainsKey(deviceId))

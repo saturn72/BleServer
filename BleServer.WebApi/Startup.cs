@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using BleServer.Common.Services.BLE;
+﻿using BleServer.Common.Services.Ble;
 using BleServer.Modules.Win10BleAdapter;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -9,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
 
-namespace BleServer
+namespace BleServer.WebApi
 {
     public class Startup
     {
@@ -27,12 +24,12 @@ namespace BleServer
 
             var win10BleAdapter = new Win10BleAdapter();
             win10BleAdapter.Start();
-            services.AddSingleton<IBluetoothAdapter>(win10BleAdapter);
+            services.AddSingleton<IBleAdapter>(win10BleAdapter);
 
-            var bluetoothManager = new BluetoothManager(new []{win10BleAdapter});
-            services.AddSingleton<IBluetoothManager>(bluetoothManager);
+            var bluetoothManager = new Common.Services.Ble.BleManager(new []{win10BleAdapter});
+            services.AddSingleton<IBleManager>(bluetoothManager);
 
-            services.AddScoped<IBluetoothService,BluetoothService>();
+            services.AddScoped<IBleService,BleService>();
 
             services.AddSwaggerGen(c =>
             {

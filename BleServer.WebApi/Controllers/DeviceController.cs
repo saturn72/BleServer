@@ -4,16 +4,16 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using BleServer.Common.Domain;
 using BleServer.Common.Services;
-using BleServer.Common.Services.BLE;
+using BleServer.Common.Services.Ble;
 
 namespace BleServer.WebApi.Controllers
 {
     [Route("api/[controller]")]
     public class DeviceController : Controller
     {
-        private readonly IBluetoothService _blutoothservice;
+        private readonly IBleService _blutoothservice;
 
-        public DeviceController(IBluetoothService blutoothservice)
+        public DeviceController(IBleService blutoothservice)
         {
             _blutoothservice = blutoothservice;
         }
@@ -21,7 +21,7 @@ namespace BleServer.WebApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllDevicesAsync()
         {
-            var devices = await _blutoothservice.GetDevices() ?? new BluetoothDevice[] { };
+            var devices = await _blutoothservice.GetDevices() ?? new BleDevice[] { };
             return Ok(devices);
         }
 
@@ -48,7 +48,7 @@ namespace BleServer.WebApi.Controllers
                     message = "Failed to find thre required resource",
                     @id = id
                 });
-            return Ok(gattServices.Data);
+            return Ok(gattServices.Data ?? new BleGattService[]{});
         }
     }
 }

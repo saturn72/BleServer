@@ -1,8 +1,7 @@
 ﻿namespace BleServer.Common.Domain
 {
-    public class BluetoothDevice
+    public class BleGattService
     {
         public string Name { get; set; }
-        public string Id { get; set; }
     }
 }
