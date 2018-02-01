@@ -68,10 +68,10 @@ namespace BleServer.WebApi.Tests.Controllers
                 {
                     new[]
                     {
-                        new BleGattService {Name = "some-gatt-service-name-1"},
-                        new BleGattService {Name = "some-gatt-service-name-2"},
-                        new BleGattService {Name = "some-gatt-service-name-3"},
-                        new BleGattService {Name = "some-gatt-service-name-4"}
+                        new BleGattService {Uuid = "some-gatt-service-name-1"},
+                        new BleGattService {Uuid = "some-gatt-service-name-2"},
+                        new BleGattService {Uuid = "some-gatt-service-name-3"},
+                        new BleGattService {Uuid = "some-gatt-service-name-4"}
                     }
                 }
             };

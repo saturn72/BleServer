@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using BleServer.Common.Domain;
 
 namespace BleServer.Common.Services.Ble
@@ -6,6 +7,6 @@ namespace BleServer.Common.Services.Ble
     public interface IBleManager
     {
         IEnumerable<BleDevice> GetDiscoveredDevices();
-        IEnumerable<BleService> GetDeviceServices(string deviceId);
+        Task<IEnumerable<BleGattService>> GetDeviceGattServices(string deviceId);
     }
 }

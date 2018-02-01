@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using BleServer.Common.Domain;
 
 namespace BleServer.Common.Services.Ble
 {
     public interface IBleAdapter
     {
-        IEnumerable<BleGattService> GetGattServices(string deviceId);
+        Task<IEnumerable<BleGattService>> GetGattServices(string deviceId);
         event BluetoothDeviceEventHandler DeviceDiscovered;
     }
 

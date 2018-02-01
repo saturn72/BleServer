@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using BleServer.Common.Domain;
 
 namespace BleServer.Common.Services.Ble
@@ -42,9 +43,10 @@ namespace BleServer.Common.Services.Ble
             return Devices.Values.Select(v=>v.Device);
         }
 
-        public IEnumerable<BleService> GetDeviceServices(string deviceId)
+        public async Task<IEnumerable<BleGattService>> GetDeviceGattServices(string deviceId)
         {
-            throw new NotImplementedException("GetDeviceServices");
+            var bleDevice= Devices[deviceId];
+            return await bleDevice.Adapter.GetGattServices(deviceId) ?? new BleGattService[]{};
         }
     }
 }

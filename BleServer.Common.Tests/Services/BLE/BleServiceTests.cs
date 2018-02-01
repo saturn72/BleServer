@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BleServer.Common.Domain;
+using BleServer.Common.Services;
 using BleServer.Common.Services.Ble;
 using Moq;
 using Shouldly;
@@ -10,7 +11,7 @@ using Xunit;
 
 namespace BleServer.Common.Tests.Services.BLE
 {
-    public class BluetoothLEServiceTests
+    public class BleServiceTests
     {
         public static IEnumerable<object[]> EmptyBluetooLEDeviceCollection => new[]
         {
@@ -18,11 +19,11 @@ namespace BleServer.Common.Tests.Services.BLE
             new object[] {new BleDevice[] { }},
         };
 
-        #region BluetoothLEService_GetDevices
+        #region BleService_GetDevices
 
         [Theory]
         [MemberData(nameof(EmptyBluetooLEDeviceCollection))]
-        public async Task BluetoothLEServiceTests_GetDevices_ReturnsEmpty(IEnumerable<BleDevice> devices)
+        public async Task BleServiceTests_GetDevices_ReturnsEmpty(IEnumerable<BleDevice> devices)
         {
             var bMgr = new Mock<IBleManager>();
             bMgr.Setup(b => b.GetDiscoveredDevices()).Returns(devices);
@@ -33,7 +34,7 @@ namespace BleServer.Common.Tests.Services.BLE
         }
 
         [Fact]
-        public async Task BluetoothLEServiceTests_GetDevices_ReturnsDevices()
+        public async Task BleServiceTests_GetDevices_ReturnsDevices()
         {
             var serviceDevices = new[]
             {
@@ -55,11 +56,11 @@ namespace BleServer.Common.Tests.Services.BLE
 
         #endregion
 
-        #region BluetoothLEService_GetDeviceById
+        #region BleService_GetDeviceById
 
         [Theory]
         [MemberData(nameof(EmptyBluetooLEDeviceCollection))]
-        public async Task BluetoothLEServiceTests_GetDeviceById_ReturnsNull(IEnumerable<BleDevice> devices)
+        public async Task BleServiceTests_GetDeviceById_ReturnsNull(IEnumerable<BleDevice> devices)
         {
             var bMgr = new Mock<IBleManager>();
             bMgr.Setup(b => b.GetDiscoveredDevices()).Returns(devices);
@@ -69,7 +70,7 @@ namespace BleServer.Common.Tests.Services.BLE
         }
 
         [Fact]
-        public async Task BluetoothLEServiceTests_GetDeviceById_ReturnsDevice()
+        public async Task BleServiceTests_GetDeviceById_ReturnsDevice()
         {
             var deviceId = "id_1";
             var bMgrResponse = new BleDevice { Id = deviceId, Name = "name_1" };
@@ -82,5 +83,49 @@ namespace BleServer.Common.Tests.Services.BLE
             res.ShouldBe(bMgrResponse);
         }
         #endregion
+
+        #region BleService_GetGattServicesByDeviceId
+
+        [Fact]
+        public async Task BleServiceTests_GetGattServicesByDeviceId_deviceNotExists()
+        {
+            var deviceId = "device-not-exists";
+            var bMgrResponse = new BleDevice { Id = "dId", Name = "name_1" };
+
+            var bMgr = new Mock<IBleManager>();
+            bMgr.Setup(b => b.GetDiscoveredDevices()).Returns(new[] { bMgrResponse });
+            var srv = new BleService(bMgr.Object);
+
+            var res = await srv.GetGattServicesByDeviceId(deviceId);
+            res.Result.ShouldBe(ServiceResponseResult.NotFound);
+        }
+
+        [Fact]
+        public async Task BleServiceTests_GetGattServicesByDeviceId_Returns_BleGattServices()
+        {
+            var deviceId = "deviceId";
+            var bMgrDevices = new BleDevice { Id = deviceId, Name = "name_1" };
+            var bMgerDeviceGattServices = new[]
+            {
+                new BleGattService {DeviceId = "gatt-service-1"},
+                new BleGattService {DeviceId= "gatt-service-2"},
+                new BleGattService {DeviceId = "gatt-service-3"},
+            };
+
+            var bMgr = new Mock<IBleManager>();
+
+            bMgr.Setup(b => b.GetDiscoveredDevices()).Returns(new[] { bMgrDevices });
+            bMgr.Setup(b => b.GetDeviceGattServices(It.IsAny<string>()))
+                .Returns(Task.FromResult((IEnumerable<BleGattService>) bMgerDeviceGattServices));
+            var srv = new BleService(bMgr.Object);
+
+            var res = await srv.GetGattServicesByDeviceId(deviceId);
+            res.Result.ShouldBe(ServiceResponseResult.Success);
+            res.Data.Count().ShouldBe(bMgerDeviceGattServices.Length);
+            foreach (var gt in res.Data)
+                bMgerDeviceGattServices.Any(t => t.Uuid == gt.Uuid).ShouldBeTrue();
+        }
+        #endregion
+
     }
 }

@@ -4,7 +4,9 @@ using System.Threading.Tasks;
 using Windows.Devices.Bluetooth.Advertisement;
 using BleServer.Common.Services.Ble;
 using Windows.Devices.Bluetooth;
+using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using BleServer.Common.Domain;
+using System.Linq;
 
 namespace BleServer.Modules.Win10BleAdapter
 {
@@ -75,15 +77,27 @@ namespace BleServer.Modules.Win10BleAdapter
             _bleWatcher.Start();
         }
 
-        public IEnumerable<BleGattService> GetGattServices(string deviceId)
+        public async Task<IEnumerable<BleGattService>> GetGattServices(string deviceId)
         {
+            var gattDeviceServices = await _devices[deviceId].GetGattServicesAsync(BluetoothCacheMode.Cached);
+            var result = new List<BleGattService>();
+            foreach (var gds in gattDeviceServices.Services)
+                result .Add(await ExtractDomainModel(gds));
+            return result;
+        }
 
-            if (_devices.ContainsKey(deviceId))
+        private static async Task<BleGattService> ExtractDomainModel(GattDeviceService gattDeviceService)
+        {
+            var srvChars = await gattDeviceService.GetCharacteristicsAsync(BluetoothCacheMode.Cached);
+
+            var bgs = new BleGattService
             {
-                var t = _devices[deviceId].GetGattServicesAsync();
-                throw new NotImplementedException();
-            }
-            throw new InvalidOperationException("The provided device Id does not exist in collection: " + deviceId);
+                Uuid = gattDeviceService.Uuid,
+                DeviceId = gattDeviceService.Device?.DeviceId ?? string.Empty,
+                Characteristics = srvChars.Characteristics
+                    .Select(sc=> new BleGattCharacteristic(sc.Uuid,sc.UserDescription)).ToArray()
+            };
+            return bgs;
         }
 
         public event BluetoothDeviceEventHandler DeviceDiscovered;

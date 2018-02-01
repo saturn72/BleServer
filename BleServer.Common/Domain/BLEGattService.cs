@@ -1,7 +1,12 @@
-﻿namespace BleServer.Common.Domain
+﻿using System;
+using System.Collections.Generic;
+
+namespace BleServer.Common.Domain
 {
     public class BleGattService
     {
-        public string Name { get; set; }
+        public Guid Uuid { get; set; }
+        public string DeviceId { get; set; }
+        public IEnumerable<BleGattCharacteristic> Characteristics { get; set; }
     }
 }

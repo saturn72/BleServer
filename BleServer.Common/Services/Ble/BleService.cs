@@ -28,9 +28,23 @@ namespace BleServer.Common.Services.Ble
             return allDevices.FirstOrDefault(x => x.Id == deviceId);
         }
 
-        public Task<ServiceResponse<IEnumerable<BleGattService>>> GetGattServicesByDeviceId(string deviceId)
+        public async Task<ServiceResponse<IEnumerable<BleGattService>>> GetGattServicesByDeviceId(string deviceId)
         {
-            throw new System.NotImplementedException();
+            var serviceResponse = new ServiceResponse<IEnumerable<BleGattService>>();
+
+            var device = await GetDeviceById(deviceId);
+            if (device == null)
+            {
+                serviceResponse.Result = ServiceResponseResult.NotFound;
+                serviceResponse.ErrorMessage = "the Given deviceId does not exists";
+                return serviceResponse;
+            }
+
+            var deviceGattServices = await _bluetoothManager.GetDeviceGattServices(deviceId) ?? new BleGattService[]{};
+            serviceResponse.Data = deviceGattServices;
+            serviceResponse.Result = ServiceResponseResult.Success;
+
+            return serviceResponse;
         }
     }
 }

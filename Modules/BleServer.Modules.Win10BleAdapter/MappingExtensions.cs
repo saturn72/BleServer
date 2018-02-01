@@ -1,4 +1,6 @@
-﻿using Windows.Devices.Bluetooth;
+﻿using System;
+using Windows.Devices.Bluetooth;
+using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using BleServer.Common.Domain;
 
 namespace BleServer.Modules.Win10BleAdapter
