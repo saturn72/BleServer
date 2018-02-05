@@ -7,6 +7,7 @@ using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using BleServer.Common.Domain;
 using System.Linq;
+using Windows.Storage.Streams;
 
 namespace BleServer.Modules.Win10BleAdapter
 {
@@ -95,13 +96,15 @@ namespace BleServer.Modules.Win10BleAdapter
                 deviceData.GattDeviceServices = deviceGattServicesResult.Services;
             }
 
+            var allCahracteristics = new List<GattCharacteristic>();
             var result = new List<BleGattService>();
             foreach (var gds in deviceData.GattDeviceServices)
             {
                 var characteristicsResult = await gds.GetCharacteristicsAsync(BluetoothCacheMode.Cached);
-                deviceData.GattDeviceCharacteristics = characteristicsResult.Characteristics;
+                allCahracteristics.AddRange(characteristicsResult.Characteristics);
                 result.Add(ExtractDomainModel(gds, deviceData.GattDeviceCharacteristics));
             }
+            deviceData.GattDeviceCharacteristics = allCahracteristics;
             return result;
         }
 
@@ -140,8 +143,9 @@ namespace BleServer.Modules.Win10BleAdapter
             if (characteristic == null)
                 return null;
 
-            var readValue = await characteristic.ReadValueAsync();
-            throw new NotImplementedException("Buffer to string");
+            var data = await characteristic.ReadValueAsync();
+            var dataReader = DataReader.FromBuffer(data.Value);
+            return dataReader.ReadString(data.Value.Length);
         }
 
         private string MitigateGattAssignedNumer(string gattAssignedNumber)
