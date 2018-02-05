@@ -1,8 +1,7 @@
-﻿using System;
-using System.Linq;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using BleServer.Common.Domain;
+using BleServer.Common.Extensions;
 using BleServer.Common.Services;
 using BleServer.Common.Services.Ble;
 
@@ -48,7 +47,26 @@ namespace BleServer.WebApi.Controllers
                     message = "Failed to find thre required resource",
                     @id = id
                 });
-            return Ok(gattServices.Data ?? new BleGattService[]{});
+            return Ok(gattServices.Data ?? new BleGattService[] { });
+        }
+
+        [HttpGet("gatt-characteristic/{deviceId}/{serviceAssignedNumber}/{characteristicAssignedNumber}")]
+        public async Task<IActionResult> ReadCharacteristicValue(string deviceId, string serviceAssignedNumber, string characteristicAssignedNumber)
+        {
+            if (!deviceId.HasValue() || !serviceAssignedNumber.HasValue() || !characteristicAssignedNumber.HasValue())
+                return BadRequest(
+                    "Missing data. Please specify all fields: deviceId, serviceAssignedNumber, characteristicAssignedNumber");
+
+            var result = await _blutoothservice.ReadCharacteristicValue(deviceId, serviceAssignedNumber, characteristicAssignedNumber);
+            var content = new
+            {
+                deviceId,
+                serviceAssignedNumber,
+                characteristicAssignedNumber,
+                data = result.Data,
+                errors = result.ErrorMessage
+            };
+            return result.HasErrors() ? BadRequest(content) : Ok(content) as IActionResult;
         }
     }
 }

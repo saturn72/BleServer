@@ -4,13 +4,8 @@ namespace BleServer.Common.Domain
 {
     public class BleGattCharacteristic
     {
-        public BleGattCharacteristic(Guid uuid, string description)
-        {
-            Uuid = uuid;
-            Description = description;
-        }
-
-        public Guid Uuid { get; }
-        public string Description { get; }
+        public Guid Uuid { get; set; }
+        public string Description { get; set; }
+        public ushort AssignedNumber { get; set; }
     }
 }

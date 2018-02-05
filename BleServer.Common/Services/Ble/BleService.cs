@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using BleServer.Common.Domain;
+using BleServer.Common.Extensions;
 
 namespace BleServer.Common.Services.Ble
 {
@@ -45,6 +46,24 @@ namespace BleServer.Common.Services.Ble
             serviceResponse.Result = ServiceResponseResult.Success;
 
             return serviceResponse;
+        }
+
+        public async Task<ServiceResponse<string>> ReadCharacteristicValue(string deviceId, string serviceAssignedNumber, string characteristicAssignedNumber)
+        {
+            var srvResponse = new ServiceResponse<string>();
+            if (!deviceId.HasValue() || !serviceAssignedNumber.HasValue() || !characteristicAssignedNumber.HasValue())
+            {
+                srvResponse.Result = ServiceResponseResult.Failed;
+                srvResponse.ErrorMessage =
+                    "Missing data. Please specify all fields: deviceId, serviceAssignedNumber, characteristicAssignedNumber";
+                return srvResponse;
+            }
+
+            var data = await _bluetoothManager.ReadServiceCharacteristic(deviceId, serviceAssignedNumber,
+                characteristicAssignedNumber);
+            srvResponse.Result = ServiceResponseResult.Success;
+            srvResponse.Data = data;
+            return srvResponse;
         }
     }
 }

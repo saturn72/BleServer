@@ -21,6 +21,9 @@ namespace BleServer.Common.Services.Ble
         {
             _bleAdapters = bleAdapters;
 
+            if(!bleAdapters.Any())
+                throw new ArgumentException(GetType().FullName + " must recieve non-empty collection.",nameof(bleAdapters));
+
             foreach (var adapter in bleAdapters)
                 adapter.DeviceDiscovered += DeviceDiscoveredHandler;
         }
@@ -47,6 +50,15 @@ namespace BleServer.Common.Services.Ble
         {
             var bleDevice= Devices[deviceId];
             return await bleDevice.Adapter.GetGattServices(deviceId) ?? new BleGattService[]{};
+        }
+
+        public async Task<string> ReadServiceCharacteristic(string deviceId, string serviceAssignedNumber, string characteristicAssignedNumber)
+        {
+            if (!Devices.ContainsKey(deviceId))
+                return null;
+
+            var adapter = Devices[deviceId].Adapter;
+            return await adapter.ReadCharacteristicValue(deviceId, serviceAssignedNumber, characteristicAssignedNumber);
         }
     }
 }

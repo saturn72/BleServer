@@ -15,11 +15,16 @@ namespace BleServer.Modules.Win10BleAdapter
         #region fields
 
         private readonly BluetoothLEAdvertisementWatcher _bleWatcher;
-        private readonly IDictionary<string, BluetoothLEDevice> _devices = new Dictionary<string, BluetoothLEDevice>();
+        private readonly IDictionary<string, BluetoothLEDeviceData> _deviceDatas = new Dictionary<string, BluetoothLEDeviceData>();
 
         private object lockObj = new object();
         #endregion
 
+        #region Events
+
+        public event BluetoothDeviceEventHandler DeviceDiscovered;
+
+        #endregion
         #region ctor
 
         public Win10BleAdapter()
@@ -40,24 +45,27 @@ namespace BleServer.Modules.Win10BleAdapter
                         return;
 
                     var bleDeviceId = bleDevice.DeviceId;
-                    
+
                     lock (lockObj)
                     {
-                        if (!_devices.ContainsKey(bleDeviceId))
-                            _devices[bleDeviceId] = bleDevice;
+                        if (!_deviceDatas.ContainsKey(bleDeviceId))
+                            _deviceDatas[bleDeviceId] = new BluetoothLEDeviceData
+                            {
+                                Device = bleDevice
+                            };
                     }
-                    OnDevicediscovered(new BleDeviceEventArgs(bleDevice.ToDomainModel()));
-                   
+                    OnDeviceDiscovered(new BleDeviceEventArgs(bleDevice.ToDomainModel()));
+
                 };
             return bleWatcher;
         }
 
-        protected virtual void OnDevicediscovered(BleDeviceEventArgs args)
+        protected virtual void OnDeviceDiscovered(BleDeviceEventArgs args)
         {
             DeviceDiscovered?.Invoke(this, args);
         }
 
-        private async Task<BluetoothLEDevice> ExtractBleDevice(BluetoothLEAdvertisementReceivedEventArgs btAdv)
+        private static async Task<BluetoothLEDevice> ExtractBleDevice(BluetoothLEAdvertisementReceivedEventArgs btAdv)
         {
             try
             {
@@ -68,8 +76,7 @@ namespace BleServer.Modules.Win10BleAdapter
                 return null;
             }
         }
-    
-
+        
         #endregion
 
         public void Start()
@@ -77,29 +84,74 @@ namespace BleServer.Modules.Win10BleAdapter
             _bleWatcher.Start();
         }
 
-        public async Task<IEnumerable<BleGattService>> GetGattServices(string deviceId)
+        #region GetGattServices
+        public async Task<IEnumerable<BleGattService>> GetGattServices(string deviceId, bool refresh = false)
         {
-            var gattDeviceServices = await _devices[deviceId].GetGattServicesAsync(BluetoothCacheMode.Cached);
+            var deviceData = _deviceDatas[deviceId];
+
+            if (!deviceData.GattDeviceServices.Any() || refresh)
+            {
+                var deviceGattServicesResult = await deviceData.Device.GetGattServicesAsync(BluetoothCacheMode.Cached);
+                deviceData.GattDeviceServices = deviceGattServicesResult.Services;
+            }
+
             var result = new List<BleGattService>();
-            foreach (var gds in gattDeviceServices.Services)
-                result .Add(await ExtractDomainModel(gds));
+            foreach (var gds in deviceData.GattDeviceServices)
+            {
+                var characteristicsResult = await gds.GetCharacteristicsAsync(BluetoothCacheMode.Cached);
+                deviceData.GattDeviceCharacteristics = characteristicsResult.Characteristics;
+                result.Add(ExtractDomainModel(gds, deviceData.GattDeviceCharacteristics));
+            }
             return result;
         }
 
-        private static async Task<BleGattService> ExtractDomainModel(GattDeviceService gattDeviceService)
+        private static BleGattService ExtractDomainModel(GattDeviceService gattDeviceService,
+            IEnumerable<GattCharacteristic> serviceCharacteristics)
         {
-            var srvChars = await gattDeviceService.GetCharacteristicsAsync(BluetoothCacheMode.Cached);
-
-            var bgs = new BleGattService
+            return new BleGattService
             {
+                AssignedNumber = gattDeviceService.AttributeHandle,
                 Uuid = gattDeviceService.Uuid,
-                DeviceId = gattDeviceService.Device?.DeviceId ?? string.Empty,
-                Characteristics = srvChars.Characteristics
-                    .Select(sc=> new BleGattCharacteristic(sc.Uuid,sc.UserDescription)).ToArray()
+                DeviceId = gattDeviceService.Session?.DeviceId?.Id ?? string.Empty,
+                Characteristics = serviceCharacteristics
+                    .Select(sc => new BleGattCharacteristic
+                    {
+                        Uuid = sc.Uuid,
+                        Description = sc.UserDescription,
+                        AssignedNumber = sc.AttributeHandle
+                    }).ToArray()
             };
-            return bgs;
         }
 
-        public event BluetoothDeviceEventHandler DeviceDiscovered;
+        #endregion
+
+        #region read Characteristics
+        public async Task<string> ReadCharacteristicValue(string deviceId, string gattServiceAssignedNumber,
+            string gattCharacteristicAssignedNumber)
+        {
+            var device = _deviceDatas[deviceId];
+            var srvGattPrefix = MitigateGattAssignedNumer(gattServiceAssignedNumber);
+            var service = device.GattDeviceServices.FirstOrDefault(s => s.Uuid.ToString().StartsWith(srvGattPrefix));
+            if (service == null)
+                return null;
+
+            var charGattPrefix = MitigateGattAssignedNumer(gattCharacteristicAssignedNumber);
+            var characteristic = device.GattDeviceCharacteristics.FirstOrDefault(c => c.Service == service && c.Uuid.ToString().StartsWith(charGattPrefix));
+            if (characteristic == null)
+                return null;
+
+            var readValue = await characteristic.ReadValueAsync();
+            throw new NotImplementedException("Buffer to string");
+        }
+
+        private string MitigateGattAssignedNumer(string gattAssignedNumber)
+        {
+            var withoutHexPrefix =
+                gattAssignedNumber.Substring(gattAssignedNumber.IndexOf("x",
+                    StringComparison.InvariantCultureIgnoreCase)+1);
+            return "0000" + withoutHexPrefix;
+        }
+
+        #endregion
     }
 }

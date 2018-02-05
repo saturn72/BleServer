@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BleServer.Common.Domain;
 using BleServer.Common.Services.Ble;
+using Moq;
 using Shouldly;
 using Xunit;
 
@@ -10,6 +12,18 @@ namespace BleServer.Common.Tests.Services.BLE
 {
     public class BleManagerTests
     {
+        #region Ctor 
+
+        [Fact]
+        public void BleManager_FailsOnCreation_OnEmptyBleAdapterCollection()
+        {
+            Should.Throw<ArgumentException>(() => new BleManager(new IBleAdapter[] { }));
+            Should.Throw<ArgumentNullException>(() => new BleManager(null));
+        }
+
+        #endregion 
+        #region BleManager_GetDeviceServices
+
         [Theory]
         [MemberData(nameof(BleManager_GetDeviceServices_Services))]
         public async Task BleManager_GetDeviceGattServices(IEnumerable<BleGattService> gattServices)
@@ -21,7 +35,7 @@ namespace BleServer.Common.Tests.Services.BLE
                 Name = "some-device-name"
             };
 
-            var bm = new BleManager(new[] {bleAdapter});
+            var bm = new BleManager(new[] { bleAdapter });
             bleAdapter.SetGetGattServices(device, gattServices);
 
             var res = await bm.GetDeviceGattServices(device.Id);
@@ -44,13 +58,15 @@ namespace BleServer.Common.Tests.Services.BLE
                 }
             }
         };
+        #endregion
 
+        #region BleManager_RegisterToDiscoveredEvent
         [Fact]
         public void BleManager_RegisterToDiscoveredEvent()
         {
             var dummyAdapter = new DummyBleAdapter();
 
-            var bm = new BleManager(new[] {dummyAdapter});
+            var bm = new BleManager(new[] { dummyAdapter });
             var device = new BleDevice
             {
                 Id = "some-device-id",
@@ -64,6 +80,36 @@ namespace BleServer.Common.Tests.Services.BLE
             d.Name = device.Name;
             d.Id = device.Id;
         }
+        #endregion
+        #region BleManager_ReadServiceCharacteristic
+
+        [Fact]
+        public void BleManager_ReadServiceCharacteristic_ReturnsNullOnDeviceNotExists()
+        {
+            var bleAdapter = new Mock<IBleAdapter>();
+            var bm = new BleManager(new[] { bleAdapter.Object });
+
+            bm.ReadServiceCharacteristic("device-not-exists", "srv", "char").ShouldBeNull();
+        }
+        [Fact]
+        public async Task BleManager_ReadServiceCharacteristic_ReturnsValueFromDevice()
+        {
+            var dummyAdapter = new DummyBleAdapter();
+
+            var bm = new BleManager(new[] { dummyAdapter });
+            var device = new BleDevice
+            {
+                Id = "some-device-id",
+                Name = "Some-device-Uuid"
+            };
+            dummyAdapter.RaiseDeviceDiscoveredEvent(device);
+            var charValue = "some-value";
+            dummyAdapter.SetCharacteristicValue(charValue);
+
+            var cv = await bm.ReadServiceCharacteristic(device.Id, "srv", "char");
+            cv.ShouldBe(charValue);
+        }
+        #endregion
     }
 
     public class DummyBleAdapter : IBleAdapter
@@ -71,12 +117,19 @@ namespace BleServer.Common.Tests.Services.BLE
         private static readonly IDictionary<string, IEnumerable<BleGattService>> _gattServices =
             new Dictionary<string, IEnumerable<BleGattService>>();
 
-        public Task<IEnumerable<BleGattService>> GetGattServices(string deviceId)
+        private string _charValue;
+
+        public Task<IEnumerable<BleGattService>> GetGattServices(string deviceId, bool refresh = false)
         {
             return Task.FromResult(_gattServices[deviceId]);
         }
 
         public event BluetoothDeviceEventHandler DeviceDiscovered;
+        public Task<string> ReadCharacteristicValue(string deviceId, string gattServiceAssignedNumber,
+            string gattCharacteristicAssignedNumber)
+        {
+            return Task.FromResult(_charValue);
+        }
 
         internal void RaiseDeviceDiscoveredEvent(BleDevice device)
         {
@@ -89,5 +142,11 @@ namespace BleServer.Common.Tests.Services.BLE
             RaiseDeviceDiscoveredEvent(device);
             _gattServices[device.Id] = gattServices?.ToArray();
         }
+
+        public void SetCharacteristicValue(string charValue)
+        {
+            _charValue = charValue;
+        }
     }
+
 }

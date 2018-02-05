@@ -127,5 +127,51 @@ namespace BleServer.Common.Tests.Services.BLE
         }
         #endregion
 
+        #region BleService_ReadCharacteristicValue
+
+        [Fact]
+        public async Task BleService_ReadCharacteristicValue_ReadFromDevice()
+        {
+            var charData = "result from device";
+            var btMgr = new Mock<IBleManager>();
+            btMgr.Setup(bm => bm.ReadServiceCharacteristic(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(charData);
+
+            var srv = new BleService(btMgr.Object);
+            var res = await srv.ReadCharacteristicValue("deviceId", "serviceAssignedNumber", "charAssignedNumber");
+
+            res.Data.ShouldBe(charData);
+            res.HasErrors().ShouldBeFalse();
+        }
+
+        [Theory]
+        [MemberData(nameof(BleService_ReadCharacteristicValue_InvalidArgs_Data))]
+        public async Task BleService_ReadCharacteristicValue_InvalidArguments(string deviceId, string serviceAssignedNumber, string charAssignedNumber)
+        {
+            var srv = new BleService(null);
+            var res = await srv.ReadCharacteristicValue(deviceId, serviceAssignedNumber, charAssignedNumber);
+            res.HasErrors().ShouldBeTrue();
+        }
+        public static IEnumerable<object[]> BleService_ReadCharacteristicValue_InvalidArgs_Data()
+        {
+            var result = new List<string[]>();
+            var deviceIdOptions = new[] { null, "deviceId" };
+            var srvANOptions = new[] { null, "srvAN" };
+            var charANOptions = new[] { null, "charAN" };
+            foreach (var di in deviceIdOptions)
+            {
+                foreach (var san in srvANOptions)
+                {
+                    foreach (var can in charANOptions)
+                    {
+                        if (di != null && san != null)
+                            continue;
+                        result.Add(new[] { di, san, can });
+                    }
+                }
+            }
+            return result;
+        }
+        #endregion
     }
 }
