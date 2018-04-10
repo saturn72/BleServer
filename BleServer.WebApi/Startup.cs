@@ -26,7 +26,7 @@ namespace BleServer.WebApi
             win10BleAdapter.Start();
             services.AddSingleton<IBleAdapter>(win10BleAdapter);
 
-            var bluetoothManager = new Common.Services.Ble.BleManager(new []{win10BleAdapter});
+            var bluetoothManager = new BleManager(new []{win10BleAdapter});
             services.AddSingleton<IBleManager>(bluetoothManager);
 
             services.AddScoped<IBleService,BleService>();
@@ -53,7 +53,7 @@ namespace BleServer.WebApi
             // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Ble Server API V1");
             });
             app.UseMvc();
         }

@@ -7,6 +7,7 @@ using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using BleServer.Common.Domain;
 using System.Linq;
+using Windows.Devices.Enumeration;
 
 namespace BleServer.Modules.Win10BleAdapter
 {
@@ -77,6 +78,17 @@ namespace BleServer.Modules.Win10BleAdapter
             _bleWatcher.Start();
         }
 
+        public async Task<bool> Unpair(string deviceId)
+        {
+            var unpairingResult = await _devices[deviceId].DeviceInformation.Pairing.UnpairAsync();
+            var result = unpairingResult.Status == DeviceUnpairingResultStatus.AlreadyUnpaired ||
+                   unpairingResult.Status == DeviceUnpairingResultStatus.Unpaired;
+
+            if (result)
+                _devices.Remove(deviceId);
+            return result;
+        }
+
         public async Task<IEnumerable<BleGattService>> GetGattServices(string deviceId)
         {
             var gattDeviceServices = await _devices[deviceId].GetGattServicesAsync(BluetoothCacheMode.Cached);
@@ -90,14 +102,13 @@ namespace BleServer.Modules.Win10BleAdapter
         {
             var srvChars = await gattDeviceService.GetCharacteristicsAsync(BluetoothCacheMode.Cached);
 
-            var bgs = new BleGattService
+            return new BleGattService
             {
                 Uuid = gattDeviceService.Uuid,
-                DeviceId = gattDeviceService.Device?.DeviceId ?? string.Empty,
-                Characteristics = srvChars.Characteristics
-                    .Select(sc=> new BleGattCharacteristic(sc.Uuid,sc.UserDescription)).ToArray()
+                DeviceId = gattDeviceService.Session?.DeviceId?.Id ?? string.Empty,
+                Characteristics = srvChars.Characteristics.AsEnumerable()
+                    .Select(sc=> new BleGattCharacteristic(sc.Uuid, sc.UserDescription)).ToArray()
             };
-            return bgs;
         }
 
         public event BluetoothDeviceEventHandler DeviceDiscovered;

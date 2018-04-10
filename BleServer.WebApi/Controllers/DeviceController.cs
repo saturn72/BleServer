@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using BleServer.Common.Domain;
@@ -38,6 +37,25 @@ namespace BleServer.WebApi.Controllers
                 }) as IActionResult;
         }
 
+        /// <summary>
+        /// Disconnects from device
+        /// </summary>
+        /// <param name="id">deviceId</param>
+        /// <returns></returns>
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DisconnectDeviceAsync(string id)
+        {
+            var wasDisconnected = await _blutoothservice.UnpairDeviceById(id);
+            return wasDisconnected ?
+                Accepted() :
+            StatusCode((int)HttpStatusCode.NotAcceptable, new
+            {
+                message = "Failed to disconnect device",
+                @id = id
+            }) as IActionResult;
+        }
+
+
         [HttpGet("gatt-services/{id}")]
         public async Task<IActionResult> GetGattServicesByDeviceId(string id)
         {
@@ -48,7 +66,7 @@ namespace BleServer.WebApi.Controllers
                     message = "Failed to find thre required resource",
                     @id = id
                 });
-            return Ok(gattServices.Data ?? new BleGattService[]{});
+            return Ok(gattServices.Data ?? new BleGattService[] { });
         }
     }
 }

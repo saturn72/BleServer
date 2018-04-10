@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -141,6 +142,20 @@ namespace BleServer.WebApi.Tests.Controllers
 
             var t = res.ShouldBeOfType<NotFoundObjectResult>();
             GetPropertyValue(t.Value, "id").ShouldBe(deviceId);
+        }
+
+        [Theory]
+        [InlineData(true, typeof(AcceptedResult))]
+        [InlineData(false, typeof(ObjectResult))]
+        public async Task DeviceController_DisconnectDeviceById(bool expResult, Type expREsponseType)
+        {
+            var bleSrv = new Mock<IBleService>();
+            bleSrv.Setup(b => b.UnpairDeviceById(It.IsAny<string>())).ReturnsAsync(expResult);
+
+            var ctrl = new DeviceController(bleSrv.Object);
+            var res = await ctrl.DisconnectDeviceAsync("some-id");
+            res.ShouldBeOfType(expREsponseType);
+
         }
     }
 }

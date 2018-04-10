@@ -11,7 +11,6 @@ namespace BleServer.Common.Services.Ble
         #region Fields
 
         private static object lockObject = new object();
-        private readonly IEnumerable<IBleAdapter> _bleAdapters;
         protected static readonly IDictionary<string, ProxiesBluetoothDevice> Devices = new Dictionary<string, ProxiesBluetoothDevice>();
         #endregion
 
@@ -19,8 +18,6 @@ namespace BleServer.Common.Services.Ble
 
         public BleManager(IEnumerable<IBleAdapter> bleAdapters)
         {
-            _bleAdapters = bleAdapters;
-
             foreach (var adapter in bleAdapters)
                 adapter.DeviceDiscovered += DeviceDiscoveredHandler;
         }
@@ -47,6 +44,14 @@ namespace BleServer.Common.Services.Ble
         {
             var bleDevice= Devices[deviceId];
             return await bleDevice.Adapter.GetGattServices(deviceId) ?? new BleGattService[]{};
+        }
+
+        public async Task<bool> Unpair(string deviceId)
+        {
+            var res =  await Devices[deviceId].Adapter.Unpair(deviceId);
+            if (res)
+                Devices.Remove(deviceId);
+            return res;
         }
     }
 }

@@ -9,5 +9,6 @@ namespace BleServer.Common.Services.Ble
         Task<IEnumerable<BleDevice>> GetDevices();
         Task<BleDevice> GetDeviceById(string deviceId);
         Task<ServiceResponse<IEnumerable<BleGattService>>> GetGattServicesByDeviceId(string deviceId);
+        Task<bool> UnpairDeviceById(string deviceId);
     }
 }

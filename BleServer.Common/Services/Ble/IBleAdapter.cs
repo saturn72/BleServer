@@ -7,6 +7,7 @@ namespace BleServer.Common.Services.Ble
     public interface IBleAdapter
     {
         Task<IEnumerable<BleGattService>> GetGattServices(string deviceId);
+        Task<bool> Unpair(string deviceId);
         event BluetoothDeviceEventHandler DeviceDiscovered;
     }
 

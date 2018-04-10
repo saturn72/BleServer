@@ -46,5 +46,10 @@ namespace BleServer.Common.Services.Ble
 
             return serviceResponse;
         }
+
+        public Task<bool> UnpairDeviceById(string deviceId)
+        {
+            return _bluetoothManager.Unpair(deviceId);
+        }
     }
 }

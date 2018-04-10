@@ -127,5 +127,22 @@ namespace BleServer.Common.Tests.Services.BLE
         }
         #endregion
 
+        #region BleService_Unpair
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task BleServiceTests_Unpair(bool expUnpairResult)
+        {
+            var bleMock = new Mock<IBleManager>();
+            bleMock.Setup(b => b.Unpair(It.IsAny<string>())).ReturnsAsync(expUnpairResult);
+            var srv = new BleService(bleMock.Object);
+
+            var res = await srv.UnpairDeviceById("some-device-id");
+            res.ShouldBe(expUnpairResult);
+        }
+
+        #endregion
+
     }
 }

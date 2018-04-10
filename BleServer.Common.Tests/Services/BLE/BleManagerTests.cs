@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BleServer.Common.Domain;
 using BleServer.Common.Services.Ble;
+using Moq;
 using Shouldly;
 using Xunit;
 
@@ -21,7 +23,7 @@ namespace BleServer.Common.Tests.Services.BLE
                 Name = "some-device-name"
             };
 
-            var bm = new BleManager(new[] {bleAdapter});
+            var bm = new BleManager(new[] { bleAdapter });
             bleAdapter.SetGetGattServices(device, gattServices);
 
             var res = await bm.GetDeviceGattServices(device.Id);
@@ -50,7 +52,7 @@ namespace BleServer.Common.Tests.Services.BLE
         {
             var dummyAdapter = new DummyBleAdapter();
 
-            var bm = new BleManager(new[] {dummyAdapter});
+            var bm = new BleManager(new[] { dummyAdapter });
             var device = new BleDevice
             {
                 Id = "some-device-id",
@@ -64,6 +66,24 @@ namespace BleServer.Common.Tests.Services.BLE
             d.Name = device.Name;
             d.Id = device.Id;
         }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task BleManager_Unpair(bool expUnpairResult)
+        {
+            var dummyAdapter = new DummyBleAdapter{UnpairResult = expUnpairResult};
+
+            var bm = new BleManager(new[] { dummyAdapter });
+            var device = new BleDevice
+            {
+                Id = "some-device-id_" + DateTime.Now.ToString("yyyy-MMMM-dd_hh:mm:ss.fffZ"),
+                Name = "Some-device-Uuid"
+            };
+            dummyAdapter.RaiseDeviceDiscoveredEvent(device);
+            var unpairResult = await bm.Unpair(device.Id);
+            unpairResult.ShouldBe(expUnpairResult);
+        }
     }
 
     public class DummyBleAdapter : IBleAdapter
@@ -74,6 +94,12 @@ namespace BleServer.Common.Tests.Services.BLE
         public Task<IEnumerable<BleGattService>> GetGattServices(string deviceId)
         {
             return Task.FromResult(_gattServices[deviceId]);
+        }
+
+        internal bool UnpairResult { get; set; }
+        public Task<bool> Unpair(string deviceId)
+        {
+            return Task.FromResult(UnpairResult);
         }
 
         public event BluetoothDeviceEventHandler DeviceDiscovered;

@@ -4,6 +4,7 @@
     <TargetFramework>net471</TargetFramework>
     <AssemblyName>BleServer.WebApi</AssemblyName>
     <RootNamespace>BleServer.WebApi</RootNamespace>
+    <DockerComposeProjectPath>..\..\docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
 
   <ItemGroup>
