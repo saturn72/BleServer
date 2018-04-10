@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BleServer.Common.Domain;
-using BleServer.Common.Services;
 using BleServer.Common.Services.Ble;
 using BleServer.WebApi.Controllers;
 using Microsoft.AspNetCore.Mvc;
@@ -36,47 +35,6 @@ namespace BleServer.WebApi.Tests.Controllers
             d.Count().ShouldBe(0);
         }
 
-        private object GetPropertyValue(object obj, string propertyName)
-        {
-            var pi = obj.GetType().GetProperty(propertyName);
-            return pi.GetValue(obj);
-        }
-
-        [Theory]
-        [MemberData(nameof(DeviceController_GetGattServicesByDeviceId_ReturnsServices_Data))]
-        public async Task DeviceController_GetGattServicesByDeviceId_ReturnsServices(
-            IEnumerable<BleGattService> data)
-        {
-            var srvRes = new ServiceResponse<IEnumerable<BleGattService>>
-            {
-                Result = ServiceResponseResult.Success,
-                Data = data
-            };
-            var bleSrv = new Mock<IBleService>();
-            bleSrv.Setup(bs => bs.GetGattServicesByDeviceId(It.IsAny<string>())).Returns(Task.FromResult(srvRes));
-            var ctrl = new DeviceController(bleSrv.Object);
-            var deviceId = "id";
-            var res = await ctrl.GetGattServicesByDeviceId(deviceId);
-            var t = res.ShouldBeOfType<OkObjectResult>();
-            (t.Value as IEnumerable<BleGattService>).Count().ShouldBe(data?.Count() ?? 0);
-        }
-
-        public static IEnumerable<object[]> DeviceController_GetGattServicesByDeviceId_ReturnsServices_Data =>
-            new[]
-            {
-                new object[] {null},
-                new object[]
-                {
-                    new[]
-                    {
-                        new BleGattService {DeviceId = "some-gatt-service-name-1"},
-                        new BleGattService {DeviceId = "some-gatt-service-name-2"},
-                        new BleGattService {DeviceId = "some-gatt-service-name-3"},
-                        new BleGattService {DeviceId = "some-gatt-service-name-4"}
-                    }
-                }
-            };
-
         [Fact]
         public async Task DeviceController_GetDeviceById_NotFoundInEmptyCollection()
         {
@@ -86,7 +44,7 @@ namespace BleServer.WebApi.Tests.Controllers
             var deviceId = "id";
             var res = await ctrl.GetDeviceByIdAsync(deviceId);
             var t = res.ShouldBeOfType<NotFoundObjectResult>();
-            GetPropertyValue(t.Value, "id").ShouldBe(deviceId);
+            TestUtil.GetPropertyValue(t.Value, "id").ShouldBe(deviceId);
         }
 
         [Fact]
@@ -127,22 +85,7 @@ namespace BleServer.WebApi.Tests.Controllers
             t.Value.ShouldBe(srvResponse);
         }
 
-        [Fact]
-        public async Task DeviceController_GetGattServicesByDeviceId_DeviceNotExists()
-        {
-            var srvRes = new ServiceResponse<IEnumerable<BleGattService>>
-            {
-                Result = ServiceResponseResult.NotFound
-            };
-            var bleSrv = new Mock<IBleService>();
-            bleSrv.Setup(bs => bs.GetGattServicesByDeviceId(It.IsAny<string>())).Returns(Task.FromResult(srvRes));
-            var ctrl = new DeviceController(bleSrv.Object);
-            var deviceId = "id";
-            var res = await ctrl.GetGattServicesByDeviceId(deviceId);
-
-            var t = res.ShouldBeOfType<NotFoundObjectResult>();
-            GetPropertyValue(t.Value, "id").ShouldBe(deviceId);
-        }
+       
 
         [Theory]
         [InlineData(true, typeof(AcceptedResult))]

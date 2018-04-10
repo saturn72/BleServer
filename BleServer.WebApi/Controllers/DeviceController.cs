@@ -1,8 +1,8 @@
-﻿using System.Net;
+﻿using System.Linq;
+using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using BleServer.Common.Domain;
-using BleServer.Common.Services;
 using BleServer.Common.Services.Ble;
 
 namespace BleServer.WebApi.Controllers
@@ -28,9 +28,9 @@ namespace BleServer.WebApi.Controllers
         public async Task<IActionResult> GetDeviceByIdAsync(string id)
         {
             var device = await _blutoothservice.GetDeviceById(id);
-            return device != null ?
-                Ok(device) :
-                NotFound(new
+            return device != null
+                ? Ok(device)
+                : NotFound(new
                 {
                     message = "Failed to find bluetooth device",
                     @id = id
@@ -46,27 +46,13 @@ namespace BleServer.WebApi.Controllers
         public async Task<IActionResult> DisconnectDeviceAsync(string id)
         {
             var wasDisconnected = await _blutoothservice.UnpairDeviceById(id);
-            return wasDisconnected ?
-                Accepted() :
-            StatusCode((int)HttpStatusCode.NotAcceptable, new
-            {
-                message = "Failed to disconnect device",
-                @id = id
-            }) as IActionResult;
-        }
-
-
-        [HttpGet("gatt-services/{id}")]
-        public async Task<IActionResult> GetGattServicesByDeviceId(string id)
-        {
-            var gattServices = await _blutoothservice.GetGattServicesByDeviceId(id);
-            if (gattServices.Result == ServiceResponseResult.NotFound)
-                return NotFound(new
+            return wasDisconnected
+                ? Accepted()
+                : StatusCode((int) HttpStatusCode.NotAcceptable, new
                 {
-                    message = "Failed to find thre required resource",
+                    message = "Failed to disconnect device",
                     @id = id
-                });
-            return Ok(gattServices.Data ?? new BleGattService[] { });
+                }) as IActionResult;
         }
     }
 }
