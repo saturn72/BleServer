@@ -22,7 +22,7 @@ namespace BleServer.Common.Services.Ble
             return await Task.FromResult(_bluetoothManager.GetDiscoveredDevices() ?? new BleDevice[] { });
         }
 
-        public async Task<BleDevice> GetDeviceById(string deviceId)
+        public virtual async Task<BleDevice> GetDeviceById(string deviceId)
         {
             var allDevices = await GetDevices();
             return allDevices.FirstOrDefault(x => x.Id == deviceId);
@@ -36,20 +36,55 @@ namespace BleServer.Common.Services.Ble
             if (device == null)
             {
                 serviceResponse.Result = ServiceResponseResult.NotFound;
-                serviceResponse.ErrorMessage = "the Given deviceId does not exists";
+                serviceResponse.ErrorMessage = $"the requested deviceId:\'{deviceId}\' does not exists.";
                 return serviceResponse;
             }
 
-            var deviceGattServices = await _bluetoothManager.GetDeviceGattServices(deviceId) ?? new BleGattService[]{};
+            var deviceGattServices = await _bluetoothManager.GetDeviceGattServices(deviceId) ?? new BleGattService[] { };
             serviceResponse.Data = deviceGattServices;
             serviceResponse.Result = ServiceResponseResult.Success;
 
             return serviceResponse;
         }
 
+        public async Task<ServiceResponse<IEnumerable<BleGattCharacteristic>>> GetCharacteristics(string deviceId, string gattServiceId)
+        {
+            var response = new ServiceResponse<IEnumerable<BleGattCharacteristic>>();
+
+            response.Data = await _bluetoothManager.GetDeviceCharacteristics(deviceId, gattServiceId);
+
+            if (!response.Data.Any())
+            {
+                response.Result = ServiceResponseResult.NotFound;
+                response.ErrorMessage = $"Failed to fetch characteristics from device with Id: \'{deviceId}\' and service with Id: \'{gattServiceId}\'";
+                return response;
+            }
+
+            response.Result = ServiceResponseResult.Success;
+            return response;
+        }
+
         public Task<bool> UnpairDeviceById(string deviceId)
         {
             return _bluetoothManager.Unpair(deviceId);
+        }
+
+        public async Task<ServiceResponse<IEnumerable<byte>>> WriteToCharacteristic(string deviceId,
+            string gattServiceId, string characteristicId, IEnumerable<byte> buffer)
+        {
+
+            var res = await _bluetoothManager.WriteToCharacteristric(deviceId, gattServiceId, characteristicId, buffer);
+            var response = new ServiceResponse<IEnumerable<byte>>
+            {
+                Data = buffer
+            };
+
+            response.Result = res ? ServiceResponseResult.Success : ServiceResponseResult.Failed;
+
+            if (!res)
+                response.ErrorMessage =
+                    $"Failed to write to characteristic. device Id: \'{deviceId}\' gatt-service Id: \'{gattServiceId}\' characteristic id: \'{characteristicId}\'";
+            return response;
         }
     }
 }

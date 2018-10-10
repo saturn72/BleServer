@@ -32,6 +32,106 @@ namespace BleServer.Common.Tests.Services.BLE
                 gattServices.Any(s => s.Uuid == r.Uuid).ShouldBeTrue();
         }
 
+        #region GetDeviceCharacteristics
+        [Fact]
+        public async Task BleManager_GetDeviceCharacteristics_NotFound()
+        {
+            var deviceId = "device-Id";
+            var gsUuid = Guid.Parse("4C088D33-76C6-4094-8C4A-65A80430678A");
+            var gs = new BleGattService { DeviceId = deviceId, Uuid = gsUuid };
+            gs.Characteristics = new BleGattCharacteristic[] { };
+
+            var bleAdapter = new DummyBleAdapter();
+            var device = new BleDevice
+            {
+                Id = deviceId,
+                Name = "some-device-name"
+            };
+
+            var bm = new BleManager(new[] { bleAdapter });
+            bleAdapter.SetGetGattServices(device, new[] { gs });
+
+            var task =  bm.GetDeviceCharacteristics(deviceId, "not-exists-gatt-service-id");
+
+            task.Exception.InnerExceptions.First().ShouldBeOfType<NullReferenceException>();
+        }
+
+        [Fact]
+        public async Task BleManager_GetDeviceCharacteristics_Found()
+        {
+            var deviceId = "device-Id";
+            var gsUuid = Guid.Parse("4C088D33-76C6-4094-8C4A-65A80430678A");
+            var gs = new BleGattService { DeviceId = deviceId, Uuid = gsUuid };
+            gs.Characteristics = new BleGattCharacteristic[] { };
+
+            var bleAdapter = new DummyBleAdapter();
+
+            var device = new BleDevice
+            {
+                Id = deviceId,
+                Name = "some-device-name"
+            };
+
+            var bm = new BleManager(new[] { bleAdapter });
+            bleAdapter.SetGetGattServices(device, new[] { gs });
+
+            var res = await bm.GetDeviceCharacteristics(deviceId, gsUuid.ToString());
+            res.ShouldBe(gs.Characteristics);
+        }
+
+        #endregion
+
+        #region WriteToCharacteristic
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task BleManager_WriteToCharacteristic_Fails(bool writeResult)
+        {
+            var deviceId = "device-Id";
+            var gattServiceId = "4C088D33-76C6-4094-8C4A-65A80430678A";
+            var characteristicId = "some-characteristic-id";
+            var gs = new BleGattService { DeviceId = deviceId, Uuid = Guid.Parse(gattServiceId)};
+            gs.Characteristics = new BleGattCharacteristic[] { };
+
+            var bleAdapter = new DummyBleAdapter();
+            var device = new BleDevice
+            {
+                Id = deviceId,
+                Name = "some-device-name"
+            };
+
+            var bm = new BleManager(new[] { bleAdapter });
+            bleAdapter.SetGetGattServices(device, new[] { gs });
+            bleAdapter.WriteResult = writeResult;
+            var res = await  bm.WriteToCharacteristric(deviceId, gattServiceId, characteristicId, new List<byte>());
+            res.ShouldBe(writeResult);
+        }
+
+        [Fact]
+        public async Task BleManager_WriteToCharacteristic_Success()
+        {
+            throw new NotImplementedException();
+            var deviceId = "device-Id";
+            var gsUuid = Guid.Parse("4C088D33-76C6-4094-8C4A-65A80430678A");
+            var gs = new BleGattService { DeviceId = deviceId, Uuid = gsUuid };
+            gs.Characteristics = new BleGattCharacteristic[] { };
+
+            var bleAdapter = new DummyBleAdapter();
+            var device = new BleDevice
+            {
+                Id = deviceId,
+                Name = "some-device-name"
+            };
+
+            var bm = new BleManager(new[] { bleAdapter });
+            bleAdapter.SetGetGattServices(device, new[] { gs });
+
+            var task = bm.GetDeviceCharacteristics(deviceId, "not-exists-gatt-service-id");
+
+            task.Exception.InnerExceptions.First().ShouldBeOfType<NullReferenceException>();
+        }
+        #endregion
+
         public static IEnumerable<object[]> BleManager_GetDeviceServices_Services => new[]
         {
             new object[] {null},
@@ -48,6 +148,7 @@ namespace BleServer.Common.Tests.Services.BLE
         };
 
         [Fact]
+        [Trait("Category", "non-deterministic")]
         public void BleManager_RegisterToDiscoveredEvent()
         {
             var dummyAdapter = new DummyBleAdapter();
@@ -88,8 +189,15 @@ namespace BleServer.Common.Tests.Services.BLE
 
     public class DummyBleAdapter : IBleAdapter
     {
+        public DummyBleAdapter()
+        {
+            _gattServices.Clear();
+        }
+
         private static readonly IDictionary<string, IEnumerable<BleGattService>> _gattServices =
             new Dictionary<string, IEnumerable<BleGattService>>();
+
+        internal bool WriteResult { get; set; }
 
         public Task<IEnumerable<BleGattService>> GetGattServices(string deviceId)
         {
@@ -97,12 +205,17 @@ namespace BleServer.Common.Tests.Services.BLE
         }
 
         internal bool UnpairResult { get; set; }
+
         public Task<bool> Unpair(string deviceId)
         {
             return Task.FromResult(UnpairResult);
         }
 
         public event BluetoothDeviceEventHandler DeviceDiscovered;
+        public Task<bool> Write(string gattServiceUuid, string characteristicUuid, IEnumerable<byte> buffer)
+        {
+            return Task.FromResult(WriteResult);
+        }
 
         internal void RaiseDeviceDiscoveredEvent(BleDevice device)
         {

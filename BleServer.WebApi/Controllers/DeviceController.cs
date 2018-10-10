@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Net;
+﻿using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using BleServer.Common.Domain;
@@ -18,7 +17,7 @@ namespace BleServer.WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllDevicesAsync()
+        public async Task<IActionResult> GetAllDiscoveredDevicesAsync()
         {
             var devices = await _blutoothservice.GetDevices() ?? new BleDevice[] { };
             return Ok(devices);

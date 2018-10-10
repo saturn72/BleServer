@@ -4,6 +4,7 @@
     {
         NotFound,
         Success,
-        NotSet
+        NotSet,
+        Failed
     }
 }

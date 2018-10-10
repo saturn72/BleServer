@@ -84,6 +84,41 @@ namespace BleServer.Common.Tests.Services.BLE
         }
         #endregion
 
+        #region BleService_GetCharacteristics
+
+        [Fact]
+        public async Task BleServiceTests_GetCharacteristics_NotFound()
+        {
+            var deviceId = "device-not-exists";
+            var serviceId = "gatt-service-id";
+            var bMgr = new Mock<IBleManager>();
+            bMgr.Setup(b => b.GetDeviceCharacteristics(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(new BleGattCharacteristic[] { });
+            var srv = new BleService(bMgr.Object);
+
+            var res = await srv.GetCharacteristics(deviceId, serviceId);
+            res.Result.ShouldBe(ServiceResponseResult.NotFound);
+            res.ErrorMessage.ShouldContain("\'" + deviceId + "\'");
+            res.ErrorMessage.ShouldContain("\'" + serviceId + "\'");
+        }
+
+        [Fact]
+        public async Task BleServiceTests_GetCharacteristics()
+        {
+            var deviceId = "device-not-exists";
+            var serviceId = "gatt-service-id";
+            var bMgrResponse = new[] { new BleGattCharacteristic(Guid.NewGuid(), "some-description") };
+            var bMgr = new Mock<IBleManager>();
+            bMgr.Setup(b => b.GetDeviceCharacteristics(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(bMgrResponse);
+            var srv = new BleService(bMgr.Object);
+
+            var res = await srv.GetCharacteristics(deviceId, serviceId);
+            res.Result.ShouldBe(ServiceResponseResult.Success);
+            res.Data.ShouldBe(bMgrResponse);
+        }
+
+        #endregion
+
         #region BleService_GetGattServicesByDeviceId
 
         [Fact]
@@ -116,7 +151,7 @@ namespace BleServer.Common.Tests.Services.BLE
 
             bMgr.Setup(b => b.GetDiscoveredDevices()).Returns(new[] { bMgrDevices });
             bMgr.Setup(b => b.GetDeviceGattServices(It.IsAny<string>()))
-                .Returns(Task.FromResult((IEnumerable<BleGattService>) bMgerDeviceGattServices));
+                .Returns(Task.FromResult((IEnumerable<BleGattService>)bMgerDeviceGattServices));
             var srv = new BleService(bMgr.Object);
 
             var res = await srv.GetGattServicesByDeviceId(deviceId);
@@ -126,6 +161,7 @@ namespace BleServer.Common.Tests.Services.BLE
                 bMgerDeviceGattServices.Any(t => t.Uuid == gt.Uuid).ShouldBeTrue();
         }
         #endregion
+
 
         #region BleService_Unpair
 
@@ -142,6 +178,42 @@ namespace BleServer.Common.Tests.Services.BLE
             res.ShouldBe(expUnpairResult);
         }
 
+        #endregion
+
+        #region BleService_WriteToCharacteristic
+        [Fact]
+        public async Task BleServiceTests_WriteToCharacteristic_Failed()
+        {
+            var bleMock = new Mock<IBleManager>();
+            bleMock.Setup(b => b.WriteToCharacteristric(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<byte>>())).ReturnsAsync(false);
+            var srv = new BleService(bleMock.Object);
+
+            var deviceId = "some-device-id";
+            var gattServiceId = "some-gatt-service-id";
+            var characteristicId = "some-characteristic-id";
+
+            var res = await srv.WriteToCharacteristic(deviceId, gattServiceId, characteristicId, new byte[] { });
+            res.Result.ShouldBe(ServiceResponseResult.Failed);
+            res.ErrorMessage.ShouldContain("\'" + deviceId + "\'");
+            res.ErrorMessage.ShouldContain("\'" + gattServiceId + "\'");
+            res.ErrorMessage.ShouldContain("\'" + characteristicId + "\'");
+        }
+        
+        [Fact]
+        public async Task BleServiceTests_WriteToCharacteristic_Success()
+        {
+            var bleMock = new Mock<IBleManager>();
+            bleMock.Setup(b => b.WriteToCharacteristric(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<byte>>())).ReturnsAsync(true);
+            var srv = new BleService(bleMock.Object);
+
+            var deviceId = "some-device-id";
+            var gattServiceId = "some-gatt-service-id";
+            var characteristicId = "some-characteristic-id";
+
+            var res = await srv.WriteToCharacteristic(deviceId, gattServiceId, characteristicId, new byte[] { });
+            res.Result.ShouldBe(ServiceResponseResult.Success);
+            res.ErrorMessage.ShouldBeNull();
+        }
         #endregion
 
     }

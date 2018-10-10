@@ -9,6 +9,7 @@ namespace BleServer.Common.Services.Ble
         Task<IEnumerable<BleGattService>> GetGattServices(string deviceId);
         Task<bool> Unpair(string deviceId);
         event BluetoothDeviceEventHandler DeviceDiscovered;
+        Task<bool> Write(string gattServiceUuid, string characteristicUuid, IEnumerable<byte> buffer);
     }
 
     public delegate void BluetoothDeviceEventHandler(IBleAdapter sender, BleDeviceEventArgs args);

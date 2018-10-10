@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using BleServer.Common.Domain;
 
@@ -28,30 +29,41 @@ namespace BleServer.Common.Services.Ble
             var deviceId = device.Id;
             lock (lockObject)
             {
-                if (!Devices.ContainsKey(deviceId))
-                    Devices[deviceId] = new ProxiesBluetoothDevice(sender, device);
+                Devices[deviceId] = new ProxiesBluetoothDevice(sender, device);
             }
         }
-        
+
         #endregion
 
         public virtual IEnumerable<BleDevice> GetDiscoveredDevices()
         {
-            return Devices.Values.Select(v=>v.Device);
+            return Devices.Values.Select(v => v.Device);
         }
 
         public async Task<IEnumerable<BleGattService>> GetDeviceGattServices(string deviceId)
         {
-            var bleDevice= Devices[deviceId];
-            return await bleDevice.Adapter.GetGattServices(deviceId) ?? new BleGattService[]{};
+            var bleAdapter = Devices[deviceId].Adapter;
+            return  await bleAdapter.GetGattServices(deviceId) ?? new BleGattService[] { };
+        }
+
+        public async Task<IEnumerable<BleGattCharacteristic>> GetDeviceCharacteristics(string deviceId, string gattServiceId)
+        {
+            var gattService = await this.GetGattServiceById(deviceId, gattServiceId);
+            return gattService.Characteristics;
         }
 
         public async Task<bool> Unpair(string deviceId)
         {
-            var res =  await Devices[deviceId].Adapter.Unpair(deviceId);
+            var res = await Devices[deviceId].Adapter.Unpair(deviceId);
             if (res)
                 Devices.Remove(deviceId);
             return res;
+        }
+
+        public async Task<bool> WriteToCharacteristric(string deviceId, string gattServiceId, string characteristicId, IEnumerable<byte> buffer)
+        {
+            var bleAdapter = Devices[deviceId].Adapter;
+            return await bleAdapter.Write(gattServiceId, characteristicId, buffer);
         }
     }
 }

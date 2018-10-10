@@ -28,7 +28,7 @@ namespace BleServer.WebApi.Tests.Controllers
             var bleSrv = new Mock<IBleService>();
             bleSrv.Setup(bs => bs.GetDevices()).Returns(Task.FromResult(devices));
             var ctrl = new DeviceController(bleSrv.Object);
-            var res = await ctrl.GetAllDevicesAsync();
+            var res = await ctrl.GetAllDiscoveredDevicesAsync();
             var t = res.ShouldBeOfType<OkObjectResult>();
             var d = t.Value as IEnumerable<BleDevice>;
             d.ShouldNotBeNull();
@@ -61,7 +61,7 @@ namespace BleServer.WebApi.Tests.Controllers
             var bleSrv = new Mock<IBleService>();
             bleSrv.Setup(bs => bs.GetDevices()).Returns(Task.FromResult(serviceDevices));
             var ctrl = new DeviceController(bleSrv.Object);
-            var res = await ctrl.GetAllDevicesAsync();
+            var res = await ctrl.GetAllDiscoveredDevicesAsync();
             var t = res.ShouldBeOfType<OkObjectResult>();
             var retDevices = t.Value as IEnumerable<BleDevice>;
             retDevices.ShouldNotBeNull();

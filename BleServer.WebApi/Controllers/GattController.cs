@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using BleServer.Common.Domain;
@@ -11,7 +12,6 @@ namespace BleServer.WebApi.Controllers
     [Route("api/[controller]")]
     public class GattController : Controller
     {
-
         private readonly IBleService _blutoothService;
 
         public GattController(IBleService blutoothService)
@@ -37,5 +37,30 @@ namespace BleServer.WebApi.Controllers
                 });
             return Ok(gattServices.Data ?? new BleGattService[]{});
         }
+
+        /// <summary>
+        /// Write to specific characteristic
+        /// </summary>
+        /// <param name="deviceId">Device's Id</param>
+        /// <param name="gattServiceId">Gatt service Id</param>
+        /// <param name="characteristicId">Characteristic Id</param>
+        /// <param name="buffer">Data to write to characteristic</param>
+        [HttpPost("characteristic/write")]
+        [ProducesResponseType(typeof(object), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(IEnumerable<BleGattService>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> WriteToDeviceCharacteristicId(string deviceId, string gattServiceId, string characteristicId, IEnumerable<byte> buffer)
+        {
+            await _blutoothService.WriteToCharacteristic(deviceId, gattServiceId, characteristicId, buffer);
+            throw new NotImplementedException();
+            //var gattServices = await _blutoothService.GetGattServicesByDeviceId(id);
+            //if (gattServices.Result == ServiceResponseResult.NotFound)
+            //    return NotFound(new
+            //    {
+            //        message = "Failed to find thre required resource",
+            //        @id = id
+            //    });
+            //return Ok(gattServices.Data ?? new BleGattService[] { });
+        }
+
     }
 }
