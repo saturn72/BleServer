@@ -6,7 +6,8 @@ using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.Advertisement;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using Windows.Devices.Enumeration;
-using BleServer.Common.Domain;
+using Windows.Storage.Streams;
+using BleServer.Common.Models;
 using BleServer.Common.Services.Ble;
 
 namespace BleServer.Modules.Win10BleAdapter
@@ -24,9 +25,9 @@ namespace BleServer.Modules.Win10BleAdapter
             return result;
         }
 
-        public async Task<IEnumerable<BleGattService>> GetGattServices(string deviceId)
+        public async Task<IEnumerable<BleGattService>> GetGattServices(string deviceUuid)
         {
-            var gattDeviceServices = await _devices[deviceId].GetGattServicesAsync(BluetoothCacheMode.Cached);
+            var gattDeviceServices = await _devices[deviceUuid].GetGattServicesAsync(BluetoothCacheMode.Cached);
             var result = new List<BleGattService>();
             foreach (var gds in gattDeviceServices.Services)
                 result.Add(await ExtractDomainModel(gds));
@@ -34,7 +35,27 @@ namespace BleServer.Modules.Win10BleAdapter
         }
 
         public event BluetoothDeviceEventHandler DeviceDiscovered;
-        public event BluetoothDeviceEventHandler DeviceStopped;
+        public async Task<bool> Write(string deviceUuid, string serviceUuid, string characteristicUuid,
+            IEnumerable<byte> buffer)
+        {
+            var srvUuid= Guid.Parse(serviceUuid);
+                var gattServices = await _devices[deviceUuid].GetGattServicesForUuidAsync(srvUuid,BluetoothCacheMode.Cached);
+            var writeService = gattServices.Services.FirstOrDefault(x => x.Uuid == srvUuid);
+            if (writeService == default(GattDeviceService))
+                return false;
+
+            var chrUuid = Guid.Parse(characteristicUuid);
+            var allCharacteristics = await  writeService.GetCharacteristicsForUuidAsync(chrUuid, BluetoothCacheMode.Cached);
+            var writeCharacteristic = allCharacteristics.Characteristics.FirstOrDefault(ch => ch.Uuid == chrUuid);
+            if (writeCharacteristic == null)
+                return false;
+
+            var writer = new DataWriter();
+            writer.WriteBytes(buffer.ToArray());
+            var status = await writeCharacteristic.WriteValueAsync(writer.DetachBuffer(), GattWriteOption.WriteWithoutResponse);
+
+            return status == GattCommunicationStatus.Success;
+        }
 
         public void Start()
         {
@@ -116,3 +137,4 @@ namespace BleServer.Modules.Win10BleAdapter
         #endregion
     }
 }
+ 

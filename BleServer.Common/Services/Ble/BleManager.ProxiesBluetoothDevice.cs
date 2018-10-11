@@ -1,4 +1,4 @@
-﻿using BleServer.Common.Domain;
+﻿using BleServer.Common.Models;
 
 namespace BleServer.Common.Services.Ble
 {

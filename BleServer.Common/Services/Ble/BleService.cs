@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using BleServer.Common.Domain;
+using BleServer.Common.Models;
 
 namespace BleServer.Common.Services.Ble
 {
@@ -36,7 +37,7 @@ namespace BleServer.Common.Services.Ble
             if (device == null)
             {
                 serviceResponse.Result = ServiceResponseResult.NotFound;
-                serviceResponse.ErrorMessage = $"the requested deviceId:\'{deviceId}\' does not exists.";
+                serviceResponse.Message = $"the requested deviceId:\'{deviceId}\' does not exists.";
                 return serviceResponse;
             }
 
@@ -56,7 +57,7 @@ namespace BleServer.Common.Services.Ble
             if (!response.Data.Any())
             {
                 response.Result = ServiceResponseResult.NotFound;
-                response.ErrorMessage = $"Failed to fetch characteristics from device with Id: \'{deviceId}\' and service with Id: \'{gattServiceId}\'";
+                response.Message = $"Failed to fetch characteristics from device with Id: \'{deviceId}\' and service with Id: \'{gattServiceId}\'";
                 return response;
             }
 
@@ -69,21 +70,31 @@ namespace BleServer.Common.Services.Ble
             return _bluetoothManager.Unpair(deviceId);
         }
 
-        public async Task<ServiceResponse<IEnumerable<byte>>> WriteToCharacteristic(string deviceId,
-            string gattServiceId, string characteristicId, IEnumerable<byte> buffer)
+        public async Task<ServiceResponse<IEnumerable<byte>>> WriteToCharacteristic(string deviceUuid,
+            string serviceUuid, string characteristicUuid, IEnumerable<byte> buffer)
         {
-
-            var res = await _bluetoothManager.WriteToCharacteristric(deviceId, gattServiceId, characteristicId, buffer);
+            bool res;
+            var errMessage = "";
+            try
+            {
+                res = await _bluetoothManager.WriteToCharacteristric(deviceUuid, serviceUuid, characteristicUuid, buffer);
+            }
+            catch (Exception e)
+            {
+                res = false;
+                errMessage = "\n" + e.Message;
+            }
+            
             var response = new ServiceResponse<IEnumerable<byte>>
             {
                 Data = buffer
             };
 
-            response.Result = res ? ServiceResponseResult.Success : ServiceResponseResult.Failed;
+            response.Result = res ? ServiceResponseResult.Success : ServiceResponseResult.Fail;
 
             if (!res)
-                response.ErrorMessage =
-                    $"Failed to write to characteristic. device Id: \'{deviceId}\' gatt-service Id: \'{gattServiceId}\' characteristic id: \'{characteristicId}\'";
+                response.Message =
+                    $"Failed to write to characteristic. device Id: \'{deviceUuid}\' gatt-service Id: \'{serviceUuid}\' characteristic id: \'{characteristicUuid}\'{errMessage}";
             return response;
         }
     }

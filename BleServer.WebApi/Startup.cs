@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace BleServer.WebApi
@@ -21,6 +23,13 @@ namespace BleServer.WebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
+            //services.AddMvc().AddJsonOptions(o =>
+            //{
+            //    o.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            //    o.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+            //});
+
+
 
             var win10BleAdapter = new Win10BleAdapter();
             win10BleAdapter.Start();

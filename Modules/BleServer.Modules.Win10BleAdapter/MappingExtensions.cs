@@ -1,7 +1,7 @@
 ﻿using System;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
-using BleServer.Common.Domain;
+using BleServer.Common.Models;
 
 namespace BleServer.Modules.Win10BleAdapter
 {

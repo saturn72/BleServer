@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BleServer.Common.Domain
+namespace BleServer.Common.Models
 {
     public class BleGattCharacteristic
     {

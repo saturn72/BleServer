@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using BleServer.Common.Domain;
+using BleServer.Common.Models;
 using BleServer.Common.Services.Ble;
 using BleServer.WebApi.Controllers;
 using Microsoft.AspNetCore.Mvc;

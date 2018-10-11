@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using BleServer.Common.Domain;
+using BleServer.Common.Models;
 using BleServer.Common.Services.Ble;
 
 namespace BleServer.WebApi.Controllers

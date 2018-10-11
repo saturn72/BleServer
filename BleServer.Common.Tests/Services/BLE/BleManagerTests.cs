@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using BleServer.Common.Domain;
+using BleServer.Common.Models;
 using BleServer.Common.Services.Ble;
 using Moq;
 using Shouldly;
@@ -199,9 +199,9 @@ namespace BleServer.Common.Tests.Services.BLE
 
         internal bool WriteResult { get; set; }
 
-        public Task<IEnumerable<BleGattService>> GetGattServices(string deviceId)
+        public Task<IEnumerable<BleGattService>> GetGattServices(string deviceUuid)
         {
-            return Task.FromResult(_gattServices[deviceId]);
+            return Task.FromResult(_gattServices[deviceUuid]);
         }
 
         internal bool UnpairResult { get; set; }
@@ -212,7 +212,8 @@ namespace BleServer.Common.Tests.Services.BLE
         }
 
         public event BluetoothDeviceEventHandler DeviceDiscovered;
-        public Task<bool> Write(string gattServiceUuid, string characteristicUuid, IEnumerable<byte> buffer)
+        public Task<bool> Write(string deviceUuid, string serviceUuid, string characteristicUuid,
+            IEnumerable<byte> buffer)
         {
             return Task.FromResult(WriteResult);
         }

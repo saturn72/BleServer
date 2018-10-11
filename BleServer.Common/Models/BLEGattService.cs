@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace BleServer.Common.Domain
+namespace BleServer.Common.Models
 {
     public class BleGattService
     {

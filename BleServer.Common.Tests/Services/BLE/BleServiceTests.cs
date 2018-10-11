@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using BleServer.Common.Domain;
+using BleServer.Common.Models;
 using BleServer.Common.Services;
 using BleServer.Common.Services.Ble;
 using Moq;
@@ -97,8 +97,8 @@ namespace BleServer.Common.Tests.Services.BLE
 
             var res = await srv.GetCharacteristics(deviceId, serviceId);
             res.Result.ShouldBe(ServiceResponseResult.NotFound);
-            res.ErrorMessage.ShouldContain("\'" + deviceId + "\'");
-            res.ErrorMessage.ShouldContain("\'" + serviceId + "\'");
+            res.Message.ShouldContain("\'" + deviceId + "\'");
+            res.Message.ShouldContain("\'" + serviceId + "\'");
         }
 
         [Fact]
@@ -193,10 +193,10 @@ namespace BleServer.Common.Tests.Services.BLE
             var characteristicId = "some-characteristic-id";
 
             var res = await srv.WriteToCharacteristic(deviceId, gattServiceId, characteristicId, new byte[] { });
-            res.Result.ShouldBe(ServiceResponseResult.Failed);
-            res.ErrorMessage.ShouldContain("\'" + deviceId + "\'");
-            res.ErrorMessage.ShouldContain("\'" + gattServiceId + "\'");
-            res.ErrorMessage.ShouldContain("\'" + characteristicId + "\'");
+            res.Result.ShouldBe(ServiceResponseResult.Fail);
+            res.Message.ShouldContain("\'" + deviceId + "\'");
+            res.Message.ShouldContain("\'" + gattServiceId + "\'");
+            res.Message.ShouldContain("\'" + characteristicId + "\'");
         }
         
         [Fact]
@@ -212,7 +212,7 @@ namespace BleServer.Common.Tests.Services.BLE
 
             var res = await srv.WriteToCharacteristic(deviceId, gattServiceId, characteristicId, new byte[] { });
             res.Result.ShouldBe(ServiceResponseResult.Success);
-            res.ErrorMessage.ShouldBeNull();
+            res.Message.ShouldBeNull();
         }
         #endregion
 

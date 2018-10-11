@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using BleServer.Common.Domain;
+using BleServer.Common.Models;
 
 namespace BleServer.Common.Services.Ble
 {
@@ -63,7 +63,7 @@ namespace BleServer.Common.Services.Ble
         public async Task<bool> WriteToCharacteristric(string deviceId, string gattServiceId, string characteristicId, IEnumerable<byte> buffer)
         {
             var bleAdapter = Devices[deviceId].Adapter;
-            return await bleAdapter.Write(gattServiceId, characteristicId, buffer);
+            return await bleAdapter.Write(deviceId, gattServiceId, characteristicId, buffer);
         }
     }
 }

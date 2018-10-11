@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using BleServer.Common.Domain;
+using BleServer.Common.Models;
 
 namespace BleServer.Common.Services.Ble
 {
@@ -14,7 +14,7 @@ namespace BleServer.Common.Services.Ble
         Task<ServiceResponse<IEnumerable<BleGattCharacteristic>>> GetCharacteristics(string deviceId,
             string gattServiceId);
 
-        Task<ServiceResponse<IEnumerable<byte>>> WriteToCharacteristic(string deviceId, string gattServiceId,
-            string characteristicId, IEnumerable<byte> buffer);
+        Task<ServiceResponse<IEnumerable<byte>>> WriteToCharacteristic(string deviceUuid, string serviceUuid,
+            string characteristicUuid, IEnumerable<byte> buffer);
     }
 }

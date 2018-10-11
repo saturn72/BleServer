@@ -5,6 +5,10 @@
         NotFound,
         Success,
         NotSet,
-        Failed
+        BadOrMissingData,
+        Created,
+        Updated,
+        NotAcceptable,
+        Fail
     }
 }

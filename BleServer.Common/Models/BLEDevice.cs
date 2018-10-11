@@ -1,4 +1,4 @@
-﻿namespace BleServer.Common.Domain
+﻿namespace BleServer.Common.Models
 {
     public class BleDevice
     {
