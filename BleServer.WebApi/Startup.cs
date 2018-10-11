@@ -1,4 +1,5 @@
 ﻿using BleServer.Common.Services.Ble;
+using BleServer.Common.Services.Notifications;
 using BleServer.Modules.Win10BleAdapter;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -34,8 +35,8 @@ namespace BleServer.WebApi
             var win10BleAdapter = new Win10BleAdapter();
             win10BleAdapter.Start();
             services.AddSingleton<IBleAdapter>(win10BleAdapter);
-
-            var bluetoothManager = new BleManager(new []{win10BleAdapter});
+            services.AddSingleton<INotifier>(null as INotifier);
+            var bluetoothManager = new BleManager(new []{win10BleAdapter}, );
             services.AddSingleton<IBleManager>(bluetoothManager);
 
             services.AddScoped<IBleService,BleService>();

@@ -15,17 +15,17 @@ namespace BleServer.Common.Services.Ble
     public class BleDeviceValueChangedEventArgs : EventArgs
     {
         public BleDeviceValueChangedEventArgs(string deviceUuid, string serviceUuid, string characteristicUuid,
-            string changedValue)
+            string message)
         {
             DeviceUuid = deviceUuid;
             ServiceUuid = serviceUuid;
             CharacteristicUuid = characteristicUuid;
-            ChangedValue = changedValue;
+            Message = message;
         }
 
         public string DeviceUuid { get; }
         public string ServiceUuid { get; }
         public string CharacteristicUuid { get; }
-        public string ChangedValue { get; }
+        public string Message { get; }
     }
 }

@@ -4,11 +4,14 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using BleServer.Common.Models;
+using BleServer.Common.Services.Notifications;
 
 namespace BleServer.Common.Services.Ble
 {
     public partial class BleManager : IBleManager
     {
+        private readonly INotifier _notifier;
+
         #region Fields
 
         private static object lockObject = new object();
@@ -17,8 +20,9 @@ namespace BleServer.Common.Services.Ble
 
         #region ctor
 
-        public BleManager(IEnumerable<IBleAdapter> bleAdapters)
+        public BleManager(IEnumerable<IBleAdapter> bleAdapters, INotifier notifier)
         {
+            _notifier = notifier;
             foreach (var adapter in bleAdapters)
             {
                 adapter.DeviceDiscovered += DeviceDiscoveredHandler;
@@ -36,9 +40,9 @@ namespace BleServer.Common.Services.Ble
             }
         }
 
-        private static void DeviceValueChangedHandler(IBleAdapter sender, BleDeviceValueChangedEventArgs args)
+        private void DeviceValueChangedHandler(IBleAdapter sender, BleDeviceValueChangedEventArgs args)
         {
-            throw new NotImplementedException("trigger signalR notification from here");
+            _notifier.Push(args.DeviceUuid, args);
         }
 
         

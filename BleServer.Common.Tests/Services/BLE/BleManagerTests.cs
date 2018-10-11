@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using BleServer.Common.Models;
 using BleServer.Common.Services.Ble;
+using BleServer.Common.Services.Notifications;
 using Moq;
 using Shouldly;
 using Xunit;
@@ -23,7 +24,7 @@ namespace BleServer.Common.Tests.Services.BLE
                 Name = "some-device-name"
             };
 
-            var bm = new BleManager(new[] { bleAdapter });
+            var bm = new BleManager(new[] { bleAdapter }, null);
             bleAdapter.SetGetGattServices(device, gattServices);
 
             var res = await bm.GetDeviceGattServices(device.Id);
@@ -48,7 +49,7 @@ namespace BleServer.Common.Tests.Services.BLE
                 Name = "some-device-name"
             };
 
-            var bm = new BleManager(new[] { bleAdapter });
+            var bm = new BleManager(new[] { bleAdapter }, null);
             bleAdapter.SetGetGattServices(device, new[] { gs });
 
             var task =  bm.GetDeviceCharacteristics(deviceId, "not-exists-gatt-service-id");
@@ -72,7 +73,7 @@ namespace BleServer.Common.Tests.Services.BLE
                 Name = "some-device-name"
             };
 
-            var bm = new BleManager(new[] { bleAdapter });
+            var bm = new BleManager(new[] { bleAdapter }, null);
             bleAdapter.SetGetGattServices(device, new[] { gs });
 
             var res = await bm.GetDeviceCharacteristics(deviceId, gsUuid.ToString());
@@ -100,7 +101,7 @@ namespace BleServer.Common.Tests.Services.BLE
                 Name = "some-device-name"
             };
 
-            var bm = new BleManager(new[] { bleAdapter });
+            var bm = new BleManager(new[] { bleAdapter }, null);
             bleAdapter.SetGetGattServices(device, new[] { gs });
             bleAdapter.WriteToCharacteristicResult = writeResult;
             var res = await  bm.WriteToCharacteristric(deviceId, gattServiceId, characteristicId, new List<byte>());
@@ -127,7 +128,7 @@ namespace BleServer.Common.Tests.Services.BLE
                 Name = "some-device-name"
             };
 
-            var bm = new BleManager(new[] { bleAdapter });
+            var bm = new BleManager(new[] { bleAdapter }, null);
             bleAdapter.SetGetGattServices(device, new[] { gs });
             bleAdapter.ReadFromCharacteristicResult = readResult;
             var res = await bm.ReadFromCharacteristic(deviceId, gattServiceId, characteristicId);
@@ -136,9 +137,10 @@ namespace BleServer.Common.Tests.Services.BLE
         [Fact]
         public async Task BleManager_RecievedValueChangedFromCharacteristic_RaisesPublisher()
         {
-            var deviceUuid = "device-Id";
-            var serviceUuid = "4C088D33-76C6-4094-8C4A-65A80430678A";
-            var characteristicUuid = "some-characteristic-id";
+            const string deviceUuid = "device-Id";
+            const string serviceUuid = "4C088D33-76C6-4094-8C4A-65A80430678A";
+            const string characteristicUuid = "some-characteristic-id";
+            const string message = "this is notifucation content";
             var gs = new BleGattService { DeviceId = deviceUuid, Uuid = Guid.Parse(serviceUuid) };
             gs.Characteristics = new BleGattCharacteristic[] { };
 
@@ -149,12 +151,17 @@ namespace BleServer.Common.Tests.Services.BLE
                 Name = "some-device-name"
             };
 
-            var bm = new BleManager(new[] { bleAdapter });
+            var notifier = new Mock<INotifier>();
+            var bm = new BleManager(new[] { bleAdapter }, notifier.Object);
             bleAdapter.SetGetGattServices(device, new[] { gs });
 
-            bleAdapter.RaiseDeviceValueChangedEvent(deviceUuid, serviceUuid, characteristicUuid, "message");
-
-            throw new NotImplementedException("Test SignalR functinality");
+            bleAdapter.RaiseDeviceValueChangedEvent(deviceUuid, serviceUuid, characteristicUuid, message);
+            notifier.Verify(n=>n.Push(It.Is<string>(s=> s == deviceUuid), It.Is<BleDeviceValueChangedEventArgs>(
+                b=>
+                    b.DeviceUuid == deviceUuid
+                    && b.ServiceUuid == serviceUuid
+                    && b.CharacteristicUuid == characteristicUuid
+                    && b.Message == message)), Times.Once);
         }
         #endregion
 
@@ -179,7 +186,7 @@ namespace BleServer.Common.Tests.Services.BLE
         {
             var dummyAdapter = new DummyBleAdapter();
 
-            var bm = new BleManager(new[] { dummyAdapter });
+            var bm = new BleManager(new[] { dummyAdapter }, null);
             var device = new BleDevice
             {
                 Id = "some-device-id",
@@ -201,7 +208,7 @@ namespace BleServer.Common.Tests.Services.BLE
         {
             var dummyAdapter = new DummyBleAdapter{UnpairResult = expUnpairResult};
 
-            var bm = new BleManager(new[] { dummyAdapter });
+            var bm = new BleManager(new[] { dummyAdapter }, null);
             var device = new BleDevice
             {
                 Id = "some-device-id_" + DateTime.Now.ToString("yyyy-MMMM-dd_hh:mm:ss.fffZ"),
