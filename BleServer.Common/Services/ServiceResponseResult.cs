@@ -2,9 +2,9 @@
 {
     public enum ServiceResponseResult
     {
+        NotSet,
         NotFound,
         Success,
-        NotSet,
         BadOrMissingData,
         Created,
         Updated,

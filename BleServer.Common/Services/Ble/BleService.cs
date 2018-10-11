@@ -75,6 +75,11 @@ namespace BleServer.Common.Services.Ble
         {
             bool res;
             var errMessage = "";
+            var response = new ServiceResponse<IEnumerable<byte>>
+            {
+                Data = buffer,
+            };
+
             try
             {
                 res = await _bluetoothManager.WriteToCharacteristric(deviceUuid, serviceUuid, characteristicUuid, buffer);
@@ -83,18 +88,48 @@ namespace BleServer.Common.Services.Ble
             {
                 res = false;
                 errMessage = "\n" + e.Message;
+                response.Result = ServiceResponseResult.NotAcceptable;
             }
-            
-            var response = new ServiceResponse<IEnumerable<byte>>
-            {
-                Data = buffer
-            };
 
-            response.Result = res ? ServiceResponseResult.Success : ServiceResponseResult.Fail;
+            response.Result = response.Result != ServiceResponseResult.NotSet ?
+                response.Result :
+                res ? ServiceResponseResult.Success : ServiceResponseResult.Fail;
+
 
             if (!res)
                 response.Message =
-                    $"Failed to write to characteristic. device Id: \'{deviceUuid}\' gatt-service Id: \'{serviceUuid}\' characteristic id: \'{characteristicUuid}\'{errMessage}";
+                    $"Failed to write to characteristic. device Id: \'{deviceUuid}\' gatt-service Id: \'{serviceUuid}\' characteristic id: \'{characteristicUuid}\' buffer: \'{buffer}\'{errMessage}";
+            return response;
+        }
+
+        public async Task<ServiceResponse<string>> SubscribeToCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid)
+        {
+            bool res;
+            var errMessage = "";
+            var response = new ServiceResponse<string>
+            {
+                Data = characteristicUuid,
+            };
+
+            try
+            {
+                res = await _bluetoothManager.ReadFromCharacteristic(deviceUuid, serviceUuid, characteristicUuid);
+            }
+            catch (Exception e)
+            {
+                res = false;
+                errMessage = "\nInternal Error: " + e.Message;
+                response.Result = ServiceResponseResult.NotAcceptable;
+            }
+
+            response.Result = response.Result != ServiceResponseResult.NotSet ?
+                response.Result :
+                res ? ServiceResponseResult.Success : ServiceResponseResult.Fail;
+
+
+            if (!res)
+                response.Message =
+                    $"Failed to subscribe to characteristic. device Id: \'{deviceUuid}\' gatt-service Id: \'{serviceUuid}\' characteristic id: \'{characteristicUuid}\'{errMessage}";
             return response;
         }
     }

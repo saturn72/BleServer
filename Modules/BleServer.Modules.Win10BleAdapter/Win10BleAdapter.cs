@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.Advertisement;
@@ -34,19 +35,31 @@ namespace BleServer.Modules.Win10BleAdapter
             return result;
         }
 
-        public event BluetoothDeviceEventHandler DeviceDiscovered;
-        public async Task<bool> Write(string deviceUuid, string serviceUuid, string characteristicUuid,
-            IEnumerable<byte> buffer)
+        private async Task<GattDeviceService> GetGattServiceByUuid(string deviceUuid, string serviceUuid)
         {
-            var srvUuid= Guid.Parse(serviceUuid);
-                var gattServices = await _devices[deviceUuid].GetGattServicesForUuidAsync(srvUuid,BluetoothCacheMode.Cached);
-            var writeService = gattServices.Services.FirstOrDefault(x => x.Uuid == srvUuid);
-            if (writeService == default(GattDeviceService))
-                return false;
+            var srvUuid = Guid.Parse(serviceUuid);
+            var gattServices = await _devices[deviceUuid].GetGattServicesForUuidAsync(srvUuid, BluetoothCacheMode.Cached);
+            return  gattServices.Services.FirstOrDefault(x => x.Uuid == srvUuid);
+        }
+
+        private async Task<GattCharacteristic> GetGattCharacteristicByUuid(string deviceUuid, string serviceUuid, string characteristicUuid)
+        {
+            var service = await GetGattServiceByUuid(deviceUuid, serviceUuid);
+            if (service == default(GattDeviceService))
+                return default(GattCharacteristic);
 
             var chrUuid = Guid.Parse(characteristicUuid);
-            var allCharacteristics = await  writeService.GetCharacteristicsForUuidAsync(chrUuid, BluetoothCacheMode.Cached);
-            var writeCharacteristic = allCharacteristics.Characteristics.FirstOrDefault(ch => ch.Uuid == chrUuid);
+            var allCharacteristics = await service.GetCharacteristicsForUuidAsync(chrUuid, BluetoothCacheMode.Cached);
+            return allCharacteristics.Characteristics.FirstOrDefault(ch => ch.Uuid == chrUuid);
+        }
+
+        public event BluetoothDeviceEventHandler DeviceDiscovered;
+        public event BluetoothDeviceValueChangedEventHandler DeviceValueChanged;
+
+        public async Task<bool> WriteToCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid,
+            IEnumerable<byte> buffer)
+        {
+            var writeCharacteristic = await GetGattCharacteristicByUuid(deviceUuid, serviceUuid, characteristicUuid);
             if (writeCharacteristic == null)
                 return false;
 
@@ -55,6 +68,31 @@ namespace BleServer.Modules.Win10BleAdapter
             var status = await writeCharacteristic.WriteValueAsync(writer.DetachBuffer(), GattWriteOption.WriteWithoutResponse);
 
             return status == GattCommunicationStatus.Success;
+        }
+
+        public async Task<bool> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid)
+        {
+            var readCharacteristic = await GetGattCharacteristicByUuid(deviceUuid, serviceUuid, characteristicUuid);
+            if (readCharacteristic == null)
+                return false;
+
+            var status = await readCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(GattClientCharacteristicConfigurationDescriptorValue.Notify);
+            var res = status == GattCommunicationStatus.Success;
+            if (res)
+                readCharacteristic.ValueChanged += async (w, btVCng) =>
+                {
+                    byte[] buffer;
+                    using (var reader = DataReader.FromBuffer(btVCng.CharacteristicValue))
+                    {
+                        buffer = new byte[reader.UnconsumedBufferLength];
+                        reader.ReadBytes(buffer);
+                    }
+                    var newValue = Encoding.UTF8.GetString(buffer, 0, buffer.Length);
+                    var args = new BleDeviceValueChangedEventArgs(deviceUuid, serviceUuid, characteristicUuid, newValue);
+                    OnValueChanged(args);
+                };
+
+            return res;
         }
 
         public void Start()
@@ -120,6 +158,11 @@ namespace BleServer.Modules.Win10BleAdapter
         protected virtual void OnDeviceDiscovered(BleDeviceEventArgs args)
         {
             DeviceDiscovered?.Invoke(this, args);
+        }
+
+        protected virtual void OnValueChanged(BleDeviceValueChangedEventArgs args)
+        {
+            DeviceValueChanged?.Invoke(this, args);
         }
 
         private static async Task<BluetoothLEDevice> ExtractBleDeviceByBluetoothAddress(ulong bluetoothAddres)

@@ -20,7 +20,10 @@ namespace BleServer.Common.Services.Ble
         public BleManager(IEnumerable<IBleAdapter> bleAdapters)
         {
             foreach (var adapter in bleAdapters)
+            {
                 adapter.DeviceDiscovered += DeviceDiscoveredHandler;
+                adapter.DeviceValueChanged += DeviceValueChangedHandler;
+            }
         }
 
         private static void DeviceDiscoveredHandler(IBleAdapter sender, BleDeviceEventArgs args)
@@ -32,6 +35,13 @@ namespace BleServer.Common.Services.Ble
                 Devices[deviceId] = new ProxiesBluetoothDevice(sender, device);
             }
         }
+
+        private static void DeviceValueChangedHandler(IBleAdapter sender, BleDeviceValueChangedEventArgs args)
+        {
+            throw new NotImplementedException("trigger signalR notification from here");
+        }
+
+        
 
         #endregion
 
@@ -46,24 +56,30 @@ namespace BleServer.Common.Services.Ble
             return  await bleAdapter.GetGattServices(deviceId) ?? new BleGattService[] { };
         }
 
-        public async Task<IEnumerable<BleGattCharacteristic>> GetDeviceCharacteristics(string deviceId, string gattServiceId)
+        public async Task<IEnumerable<BleGattCharacteristic>> GetDeviceCharacteristics(string deviceUuid, string serviceUuid)
         {
-            var gattService = await this.GetGattServiceById(deviceId, gattServiceId);
+            var gattService = await this.GetGattServiceById(deviceUuid, serviceUuid);
             return gattService.Characteristics;
         }
 
-        public async Task<bool> Unpair(string deviceId)
+        public async Task<bool> Unpair(string deviceUuid)
         {
-            var res = await Devices[deviceId].Adapter.Unpair(deviceId);
+            var res = await Devices[deviceUuid].Adapter.Unpair(deviceUuid);
             if (res)
-                Devices.Remove(deviceId);
+                Devices.Remove(deviceUuid);
             return res;
         }
 
-        public async Task<bool> WriteToCharacteristric(string deviceId, string gattServiceId, string characteristicId, IEnumerable<byte> buffer)
+        public async Task<bool> WriteToCharacteristric(string deviceUuid, string serviceUuid, string characteristicUuid, IEnumerable<byte> buffer)
         {
-            var bleAdapter = Devices[deviceId].Adapter;
-            return await bleAdapter.Write(deviceId, gattServiceId, characteristicId, buffer);
+            var bleAdapter = Devices[deviceUuid].Adapter;
+            return await bleAdapter.WriteToCharacteristic(deviceUuid, serviceUuid, characteristicUuid, buffer);
+        }
+
+        public async Task<bool> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid)
+        {
+            var bleAdapter = Devices[deviceUuid].Adapter;
+            return await bleAdapter.ReadFromCharacteristic(deviceUuid, serviceUuid, characteristicUuid);
         }
     }
 }

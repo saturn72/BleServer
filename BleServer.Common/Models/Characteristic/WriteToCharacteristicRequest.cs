@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace BleServer.Common.Models
+namespace BleServer.Common.Models.Characteristic
 {
-    public sealed class CommandRequest
+    public sealed class WriteToCharacteristicRequest
     {
         private IEnumerable<string> _buffer;
 

@@ -181,6 +181,7 @@ namespace BleServer.Common.Tests.Services.BLE
         #endregion
 
         #region BleService_WriteToCharacteristic
+
         [Fact]
         public async Task BleServiceTests_WriteToCharacteristic_Failed()
         {
@@ -198,7 +199,25 @@ namespace BleServer.Common.Tests.Services.BLE
             res.Message.ShouldContain("\'" + gattServiceId + "\'");
             res.Message.ShouldContain("\'" + characteristicId + "\'");
         }
-        
+        [Fact]
+        public async Task BleServiceTests_WriteToCharacteristic_Throws()
+        {
+            var bleMock = new Mock<IBleManager>();
+            bleMock.Setup(b => b.WriteToCharacteristric(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<byte>>()))
+                .ThrowsAsync(new NullReferenceException());
+            var srv = new BleService(bleMock.Object);
+
+            var deviceId = "some-device-id";
+            var gattServiceId = "some-gatt-service-id";
+            var characteristicId = "some-characteristic-id";
+
+            var res = await srv.WriteToCharacteristic(deviceId, gattServiceId, characteristicId, new byte[] { });
+            res.Result.ShouldBe(ServiceResponseResult.NotAcceptable);
+            res.Message.ShouldContain("\'" + deviceId + "\'");
+            res.Message.ShouldContain("\'" + gattServiceId + "\'");
+            res.Message.ShouldContain("\'" + characteristicId + "\'");
+        }
+
         [Fact]
         public async Task BleServiceTests_WriteToCharacteristic_Success()
         {
@@ -216,5 +235,58 @@ namespace BleServer.Common.Tests.Services.BLE
         }
         #endregion
 
+        #region BleService_SubscribeToCharacteristic
+        [Fact]
+        public async Task BleService_SubscribeToCharacteristic_Failed()
+        {
+            var bleMock = new Mock<IBleManager>();
+            bleMock.Setup(b => b.ReadFromCharacteristic(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(false);
+            var srv = new BleService(bleMock.Object);
+
+            var deviceId = "some-device-id";
+            var gattServiceId = "some-gatt-service-id";
+            var characteristicId = "some-characteristic-id";
+
+            var res = await srv.SubscribeToCharacteristic(deviceId, gattServiceId, characteristicId);
+            res.Result.ShouldBe(ServiceResponseResult.Fail);
+            res.Message.ShouldContain("\'" + deviceId + "\'");
+            res.Message.ShouldContain("\'" + gattServiceId + "\'");
+            res.Message.ShouldContain("\'" + characteristicId + "\'");
+        }
+        [Fact]
+        public async Task BleService_SubscribeToCharacteristic_Throws()
+        {
+            var bleMock = new Mock<IBleManager>();
+            bleMock.Setup(b => b.ReadFromCharacteristic(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ThrowsAsync(new NullReferenceException());
+            var srv = new BleService(bleMock.Object);
+
+            var deviceId = "some-device-id";
+            var gattServiceId = "some-gatt-service-id";
+            var characteristicId = "some-characteristic-id";
+
+            var res = await srv.SubscribeToCharacteristic(deviceId, gattServiceId, characteristicId);
+            res.Result.ShouldBe(ServiceResponseResult.NotAcceptable);
+            res.Message.ShouldContain("\'" + deviceId + "\'");
+            res.Message.ShouldContain("\'" + gattServiceId + "\'");
+            res.Message.ShouldContain("\'" + characteristicId + "\'");
+        }
+
+        [Fact]
+        public async Task BleService_SubscribeToCharacteristic_Success()
+        {
+            var bleMock = new Mock<IBleManager>();
+            bleMock.Setup(b => b.ReadFromCharacteristic(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(true);
+            var srv = new BleService(bleMock.Object);
+
+            var deviceId = "some-device-id";
+            var gattServiceId = "some-gatt-service-id";
+            var characteristicId = "some-characteristic-id";
+
+            var res = await srv.SubscribeToCharacteristic(deviceId, gattServiceId, characteristicId);
+            res.Result.ShouldBe(ServiceResponseResult.Success);
+            res.Message.ShouldBeNull();
+        }
+        #endregion
     }
 }

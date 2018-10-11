@@ -23,7 +23,7 @@ namespace BleServer.WebApi.Tests.Controllers
             };
             var bleSrv = new Mock<IBleService>();
             bleSrv.Setup(bs => bs.GetGattServicesByDeviceId(It.IsAny<string>())).Returns(Task.FromResult(srvRes));
-            var ctrl = new GattController(bleSrv.Object);
+            var ctrl = new ServiceController(bleSrv.Object);
             var deviceId = "id";
             var res = await ctrl.GetGattServicesByDeviceId(deviceId);
 
@@ -43,7 +43,7 @@ namespace BleServer.WebApi.Tests.Controllers
             };
             var bleSrv = new Mock<IBleService>();
             bleSrv.Setup(bs => bs.GetGattServicesByDeviceId(It.IsAny<string>())).Returns(Task.FromResult(srvRes));
-            var ctrl = new GattController(bleSrv.Object);
+            var ctrl = new ServiceController(bleSrv.Object);
             var deviceId = "id";
             var res = await ctrl.GetGattServicesByDeviceId(deviceId);
             var t = res.ShouldBeOfType<OkObjectResult>();

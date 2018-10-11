@@ -102,18 +102,22 @@ namespace BleServer.Common.Tests.Services.BLE
 
             var bm = new BleManager(new[] { bleAdapter });
             bleAdapter.SetGetGattServices(device, new[] { gs });
-            bleAdapter.WriteResult = writeResult;
+            bleAdapter.WriteToCharacteristicResult = writeResult;
             var res = await  bm.WriteToCharacteristric(deviceId, gattServiceId, characteristicId, new List<byte>());
             res.ShouldBe(writeResult);
         }
+        #endregion
 
-        [Fact]
-        public async Task BleManager_WriteToCharacteristic_Success()
+        #region ReadFromCharacteristic
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task BleManager_ReadFromCharacteristic_Fails(bool readResult)
         {
-            throw new NotImplementedException();
             var deviceId = "device-Id";
-            var gsUuid = Guid.Parse("4C088D33-76C6-4094-8C4A-65A80430678A");
-            var gs = new BleGattService { DeviceId = deviceId, Uuid = gsUuid };
+            var gattServiceId = "4C088D33-76C6-4094-8C4A-65A80430678A";
+            var characteristicId = "some-characteristic-id";
+            var gs = new BleGattService { DeviceId = deviceId, Uuid = Guid.Parse(gattServiceId) };
             gs.Characteristics = new BleGattCharacteristic[] { };
 
             var bleAdapter = new DummyBleAdapter();
@@ -125,10 +129,32 @@ namespace BleServer.Common.Tests.Services.BLE
 
             var bm = new BleManager(new[] { bleAdapter });
             bleAdapter.SetGetGattServices(device, new[] { gs });
+            bleAdapter.ReadFromCharacteristicResult = readResult;
+            var res = await bm.ReadFromCharacteristic(deviceId, gattServiceId, characteristicId);
+            res.ShouldBe(readResult);
+        }
+        [Fact]
+        public async Task BleManager_RecievedValueChangedFromCharacteristic_RaisesPublisher()
+        {
+            var deviceUuid = "device-Id";
+            var serviceUuid = "4C088D33-76C6-4094-8C4A-65A80430678A";
+            var characteristicUuid = "some-characteristic-id";
+            var gs = new BleGattService { DeviceId = deviceUuid, Uuid = Guid.Parse(serviceUuid) };
+            gs.Characteristics = new BleGattCharacteristic[] { };
 
-            var task = bm.GetDeviceCharacteristics(deviceId, "not-exists-gatt-service-id");
+            var bleAdapter = new DummyBleAdapter();
+            var device = new BleDevice
+            {
+                Id = deviceUuid,
+                Name = "some-device-name"
+            };
 
-            task.Exception.InnerExceptions.First().ShouldBeOfType<NullReferenceException>();
+            var bm = new BleManager(new[] { bleAdapter });
+            bleAdapter.SetGetGattServices(device, new[] { gs });
+
+            bleAdapter.RaiseDeviceValueChangedEvent(deviceUuid, serviceUuid, characteristicUuid, "message");
+
+            throw new NotImplementedException("Test SignalR functinality");
         }
         #endregion
 
@@ -197,7 +223,7 @@ namespace BleServer.Common.Tests.Services.BLE
         private static readonly IDictionary<string, IEnumerable<BleGattService>> _gattServices =
             new Dictionary<string, IEnumerable<BleGattService>>();
 
-        internal bool WriteResult { get; set; }
+        internal bool WriteToCharacteristicResult { get; set; }
 
         public Task<IEnumerable<BleGattService>> GetGattServices(string deviceUuid)
         {
@@ -212,12 +238,27 @@ namespace BleServer.Common.Tests.Services.BLE
         }
 
         public event BluetoothDeviceEventHandler DeviceDiscovered;
-        public Task<bool> Write(string deviceUuid, string serviceUuid, string characteristicUuid,
+        public event BluetoothDeviceValueChangedEventHandler DeviceValueChanged;
+
+        public Task<bool> WriteToCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid,
             IEnumerable<byte> buffer)
         {
-            return Task.FromResult(WriteResult);
+            return Task.FromResult(WriteToCharacteristicResult);
         }
 
+        public Task<bool> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid)
+        {
+            return Task.FromResult(ReadFromCharacteristicResult);
+        }
+
+
+        public bool ReadFromCharacteristicResult { get; set; }
+
+        internal void RaiseDeviceValueChangedEvent(string deviceUuid, string serviceUuid, string characteristicUuid, string message)
+        {
+            var args = new BleDeviceValueChangedEventArgs(deviceUuid,  serviceUuid,  characteristicUuid, message);
+            DeviceValueChanged(this, args);
+        }
         internal void RaiseDeviceDiscoveredEvent(BleDevice device)
         {
             var bdea = new BleDeviceEventArgs(device);
