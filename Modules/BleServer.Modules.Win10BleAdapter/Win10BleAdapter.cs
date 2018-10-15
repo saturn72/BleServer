@@ -79,7 +79,7 @@ namespace BleServer.Modules.Win10BleAdapter
             var status = await readCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(GattClientCharacteristicConfigurationDescriptorValue.Notify);
             var res = status == GattCommunicationStatus.Success;
             if (res)
-                readCharacteristic.ValueChanged += async (w, btVCng) =>
+                readCharacteristic.ValueChanged += (w, btVCng) =>
                 {
                     byte[] buffer;
                     using (var reader = DataReader.FromBuffer(btVCng.CharacteristicValue))

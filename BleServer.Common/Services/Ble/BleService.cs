@@ -102,7 +102,7 @@ namespace BleServer.Common.Services.Ble
             return response;
         }
 
-        public async Task<ServiceResponse<string>> SubscribeToCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid)
+        public async Task<ServiceResponse<string>> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid)
         {
             bool res;
             var errMessage = "";

@@ -53,9 +53,9 @@ namespace BleServer.WebApi.Controllers
         /// <summary>
         ///     Subscribe to specific characteristics
         /// </summary>
-        [HttpPost("subscribe")]
+        [HttpPost("read")]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.Accepted)] // everything's OK
-        public async Task<IActionResult> SubscribeToCharacteristic([FromBody] SubscribeToCharacteristicRequest subscribeRequest)
+        public async Task<IActionResult> ReadFromCharacteristic([FromBody] SubscribeToCharacteristicRequest subscribeRequest)
         {
             if (!VerifySubscribeToCharacteristicRequest(subscribeRequest))
                 return BadRequest(
@@ -65,7 +65,7 @@ namespace BleServer.WebApi.Controllers
                         message = "Bad or missing data"
                     });
 
-            var res = await _blutoothService.SubscribeToCharacteristic(subscribeRequest.DeviceUuid,
+            var res = await _blutoothService.ReadFromCharacteristic(subscribeRequest.DeviceUuid,
                 subscribeRequest.ServiceUuid, subscribeRequest.CharacteristicUuid);
 
             return res.ToActionResult();

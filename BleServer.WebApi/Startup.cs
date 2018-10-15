@@ -35,9 +35,8 @@ namespace BleServer.WebApi
             var win10BleAdapter = new Win10BleAdapter();
             win10BleAdapter.Start();
             services.AddSingleton<IBleAdapter>(win10BleAdapter);
-            services.AddSingleton<INotifier>(null as INotifier);
-            var bluetoothManager = new BleManager(new []{win10BleAdapter}, );
-            services.AddSingleton<IBleManager>(bluetoothManager);
+            services.AddSingleton<INotifier, SignalRNotifier>();
+            services.AddSingleton<IBleManager>(sr=> new BleManager(new[] { win10BleAdapter }, sr.GetService<INotifier>()));
 
             services.AddScoped<IBleService,BleService>();
 
@@ -65,6 +64,12 @@ namespace BleServer.WebApi
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Ble Server API V1");
             });
+
+            //app.UseSignalR(route =>
+            //{
+            //    route.MapHub<MessageHub>("/ws");
+            //});
+
             app.UseMvc();
         }
     }

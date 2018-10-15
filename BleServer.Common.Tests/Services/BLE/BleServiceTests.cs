@@ -247,7 +247,7 @@ namespace BleServer.Common.Tests.Services.BLE
             var gattServiceId = "some-gatt-service-id";
             var characteristicId = "some-characteristic-id";
 
-            var res = await srv.SubscribeToCharacteristic(deviceId, gattServiceId, characteristicId);
+            var res = await srv.ReadFromCharacteristic(deviceId, gattServiceId, characteristicId);
             res.Result.ShouldBe(ServiceResponseResult.Fail);
             res.Message.ShouldContain("\'" + deviceId + "\'");
             res.Message.ShouldContain("\'" + gattServiceId + "\'");
@@ -265,7 +265,7 @@ namespace BleServer.Common.Tests.Services.BLE
             var gattServiceId = "some-gatt-service-id";
             var characteristicId = "some-characteristic-id";
 
-            var res = await srv.SubscribeToCharacteristic(deviceId, gattServiceId, characteristicId);
+            var res = await srv.ReadFromCharacteristic(deviceId, gattServiceId, characteristicId);
             res.Result.ShouldBe(ServiceResponseResult.NotAcceptable);
             res.Message.ShouldContain("\'" + deviceId + "\'");
             res.Message.ShouldContain("\'" + gattServiceId + "\'");
@@ -283,7 +283,7 @@ namespace BleServer.Common.Tests.Services.BLE
             var gattServiceId = "some-gatt-service-id";
             var characteristicId = "some-characteristic-id";
 
-            var res = await srv.SubscribeToCharacteristic(deviceId, gattServiceId, characteristicId);
+            var res = await srv.ReadFromCharacteristic(deviceId, gattServiceId, characteristicId);
             res.Result.ShouldBe(ServiceResponseResult.Success);
             res.Message.ShouldBeNull();
         }
