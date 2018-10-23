@@ -6,12 +6,4 @@ namespace BleServer.Common.Services.Notifications
     {
         Task Push(string key, object notification);
     }
-
-    public class SignalRNotifier : INotifier
-    {
-        public Task Push(string key, object notification)
-        {
-            throw new System.NotImplementedException();
-        }
-    }
 }

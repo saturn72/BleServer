@@ -129,7 +129,7 @@ namespace BleServer.Common.Services.Ble
 
             if (!res)
                 response.Message =
-                    $"Failed to subscribe to characteristic. device Id: \'{deviceUuid}\' gatt-service Id: \'{serviceUuid}\' characteristic id: \'{characteristicUuid}\'{errMessage}";
+                    $"Failed to read from characteristic. device Id: \'{deviceUuid}\' gatt-service Id: \'{serviceUuid}\' characteristic id: \'{characteristicUuid}\'{errMessage}";
             return response;
         }
     }

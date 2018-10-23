@@ -42,10 +42,10 @@ namespace BleServer.Common.Services.Ble
 
         private void DeviceValueChangedHandler(IBleAdapter sender, BleDeviceValueChangedEventArgs args)
         {
-            _notifier.Push(args.DeviceUuid, args);
+            Task.Run(() => _notifier.Push(args.DeviceUuid, args));
         }
 
-        
+
 
         #endregion
 
@@ -57,7 +57,7 @@ namespace BleServer.Common.Services.Ble
         public async Task<IEnumerable<BleGattService>> GetDeviceGattServices(string deviceId)
         {
             var bleAdapter = Devices[deviceId].Adapter;
-            return  await bleAdapter.GetGattServices(deviceId) ?? new BleGattService[] { };
+            return await bleAdapter.GetGattServices(deviceId) ?? new BleGattService[] { };
         }
 
         public async Task<IEnumerable<BleGattCharacteristic>> GetDeviceCharacteristics(string deviceUuid, string serviceUuid)

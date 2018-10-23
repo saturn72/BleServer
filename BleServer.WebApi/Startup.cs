@@ -5,8 +5,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace BleServer.WebApi
@@ -24,18 +22,13 @@ namespace BleServer.WebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
-            //services.AddMvc().AddJsonOptions(o =>
-            //{
-            //    o.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-            //    o.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-            //});
-
-
+            services.AddSignalR(options => options.EnableDetailedErrors = true);
+            services.AddSingleton<MessageHub>();
+            services.AddSingleton<INotifier, SignalRNotifier>();
 
             var win10BleAdapter = new Win10BleAdapter();
             win10BleAdapter.Start();
             services.AddSingleton<IBleAdapter>(win10BleAdapter);
-            services.AddSingleton<INotifier, SignalRNotifier>();
             services.AddSingleton<IBleManager>(sr=> new BleManager(new[] { win10BleAdapter }, sr.GetService<INotifier>()));
 
             services.AddScoped<IBleService,BleService>();
@@ -65,10 +58,10 @@ namespace BleServer.WebApi
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Ble Server API V1");
             });
 
-            //app.UseSignalR(route =>
-            //{
-            //    route.MapHub<MessageHub>("/ws");
-            //});
+            app.UseSignalR(route =>
+            {
+                route.MapHub<MessageHub>("/ws");
+            });
 
             app.UseMvc();
         }

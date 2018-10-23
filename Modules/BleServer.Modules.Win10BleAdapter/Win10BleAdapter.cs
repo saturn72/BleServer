@@ -28,7 +28,7 @@ namespace BleServer.Modules.Win10BleAdapter
 
         public async Task<IEnumerable<BleGattService>> GetGattServices(string deviceUuid)
         {
-            var gattDeviceServices = await _devices[deviceUuid].GetGattServicesAsync(BluetoothCacheMode.Cached);
+            var gattDeviceServices = await _devices[deviceUuid].GetGattServicesAsync();
             var result = new List<BleGattService>();
             foreach (var gds in gattDeviceServices.Services)
                 result.Add(await ExtractDomainModel(gds));
@@ -37,20 +37,16 @@ namespace BleServer.Modules.Win10BleAdapter
 
         private async Task<GattDeviceService> GetGattServiceByUuid(string deviceUuid, string serviceUuid)
         {
-            var srvUuid = Guid.Parse(serviceUuid);
-            var gattServices = await _devices[deviceUuid].GetGattServicesForUuidAsync(srvUuid, BluetoothCacheMode.Cached);
-            return  gattServices.Services.FirstOrDefault(x => x.Uuid == srvUuid);
-        }
+            var srvKey = $"{deviceUuid}_{serviceUuid}";
+            if (_services.TryGetValue(srvKey, out var service))
+                return service;
 
-        private async Task<GattCharacteristic> GetGattCharacteristicByUuid(string deviceUuid, string serviceUuid, string characteristicUuid)
-        {
-            var service = await GetGattServiceByUuid(deviceUuid, serviceUuid);
-            if (service == default(GattDeviceService))
-                return default(GattCharacteristic);
+            var gattServices = await _devices[deviceUuid].GetGattServicesForUuidAsync(Guid.Parse(serviceUuid),BluetoothCacheMode.Cached);
+            service = gattServices.Services.First();
 
-            var chrUuid = Guid.Parse(characteristicUuid);
-            var allCharacteristics = await service.GetCharacteristicsForUuidAsync(chrUuid, BluetoothCacheMode.Cached);
-            return allCharacteristics.Characteristics.FirstOrDefault(ch => ch.Uuid == chrUuid);
+            _services[srvKey] = service;
+
+            return service;
         }
 
         public event BluetoothDeviceEventHandler DeviceDiscovered;
@@ -59,40 +55,67 @@ namespace BleServer.Modules.Win10BleAdapter
         public async Task<bool> WriteToCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid,
             IEnumerable<byte> buffer)
         {
-            var writeCharacteristic = await GetGattCharacteristicByUuid(deviceUuid, serviceUuid, characteristicUuid);
-            if (writeCharacteristic == null)
-                return false;
+            var writeCharacteristic = await GetCharacteristicAsync(deviceUuid, serviceUuid, characteristicUuid);
+            using (var writer = new DataWriter())
+            {
+                writer.WriteBytes(buffer.ToArray());
+                var status = await writeCharacteristic.WriteValueAsync(writer.DetachBuffer(), GattWriteOption.WriteWithResponse);
+                return status == GattCommunicationStatus.Success;
+            }
+        }
 
-            var writer = new DataWriter();
-            writer.WriteBytes(buffer.ToArray());
-            var status = await writeCharacteristic.WriteValueAsync(writer.DetachBuffer(), GattWriteOption.WriteWithoutResponse);
+        private async Task<GattCharacteristic> GetCharacteristicAsync(string deviceUuid, string serviceUuid,
+            string characteristicUuid)
+        {
+            var chKey = BuildCharacteristicKey(deviceUuid, serviceUuid, characteristicUuid);
 
-            return status == GattCommunicationStatus.Success;
+            if (_characteristics.TryGetValue(chKey, out var characteristic))
+                return characteristic;
+
+            var service = await GetGattServiceByUuid(deviceUuid, serviceUuid);
+            var allCharacteristics = await service.GetCharacteristicsForUuidAsync(Guid.Parse(characteristicUuid),BluetoothCacheMode.Uncached);
+            return allCharacteristics.Characteristics.First();
         }
 
         public async Task<bool> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid)
         {
-            var readCharacteristic = await GetGattCharacteristicByUuid(deviceUuid, serviceUuid, characteristicUuid);
-            if (readCharacteristic == null)
-                return false;
+            var readCharacteristic = await GetCharacteristicAsync(deviceUuid, serviceUuid, characteristicUuid);
+            var chKey = BuildCharacteristicKey(deviceUuid, serviceUuid, characteristicUuid);
+            _characteristics[chKey] = readCharacteristic;
 
-            var status = await readCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(GattClientCharacteristicConfigurationDescriptorValue.Notify);
-            var res = status == GattCommunicationStatus.Success;
-            if (res)
-                readCharacteristic.ValueChanged += (w, btVCng) =>
-                {
-                    byte[] buffer;
-                    using (var reader = DataReader.FromBuffer(btVCng.CharacteristicValue))
-                    {
-                        buffer = new byte[reader.UnconsumedBufferLength];
-                        reader.ReadBytes(buffer);
-                    }
-                    var newValue = Encoding.UTF8.GetString(buffer, 0, buffer.Length);
-                    var args = new BleDeviceValueChangedEventArgs(deviceUuid, serviceUuid, characteristicUuid, newValue);
-                    OnValueChanged(args);
-                };
+            var status =
+                await readCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
+                    GattClientCharacteristicConfigurationDescriptorValue.Notify);
+            var result = status == GattCommunicationStatus.Success;
 
-            return res;
+            if (result) readCharacteristic.ValueChanged += ProcessAndNotify;
+
+            return result;
+        }
+
+
+        private string BuildCharacteristicKey(string deviceUuid, string serviceUuid,
+            string characteristicUuid)
+        {
+            return $"{deviceUuid}_{serviceUuid}_{characteristicUuid}";
+        }
+
+        private void ProcessAndNotify(GattCharacteristic sender, GattValueChangedEventArgs args)
+        {
+            byte[] buffer;
+            using (var reader = DataReader.FromBuffer(args.CharacteristicValue))
+            {
+                buffer = new byte[reader.UnconsumedBufferLength];
+                reader.ReadBytes(buffer);
+            }
+
+            var newValue = Encoding.UTF8.GetString(buffer, 0, buffer.Length);
+            var valueChanged = new BleDeviceValueChangedEventArgs(sender.Service.Device.DeviceId,
+                sender.Service.Uuid.ToString(),
+                sender.Uuid.ToString(),
+                newValue);
+
+            OnValueChanged(valueChanged);
         }
 
         public void Start()
@@ -117,6 +140,8 @@ namespace BleServer.Modules.Win10BleAdapter
 
         private readonly BluetoothLEAdvertisementWatcher _bleWatcher;
         private readonly IDictionary<string, BluetoothLEDevice> _devices = new Dictionary<string, BluetoothLEDevice>();
+        private readonly IDictionary<string, GattCharacteristic> _characteristics = new Dictionary<string, GattCharacteristic>();
+        private readonly IDictionary<string, GattDeviceService> _services = new Dictionary<string, GattDeviceService>();
 
         private readonly object lockObj = new object();
 
@@ -180,4 +205,3 @@ namespace BleServer.Modules.Win10BleAdapter
         #endregion
     }
 }
- 
