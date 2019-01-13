@@ -54,24 +54,28 @@ namespace BleServer.Modules.Win10BleAdapter
 
         public async Task<IEnumerable<byte>> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid)
         {
-            throw new NotImplementedException();
-            // var writeCharacteristic = await GetCharacteristicAsync(deviceUuid, serviceUuid, characteristicUuid);
-            // using (var writer = new DataWriter())
-            // {
-            //     writer.WriteBytes(buffer.ToArray());
-            //     var status = await writeCharacteristic.WriteValueAsync(writer.DetachBuffer(), GattWriteOption.WriteWithResponse);
-            //     return status == GattCommunicationStatus.Success;
-            // }
+            var characteristic = await GetCharacteristicAsync(deviceUuid, serviceUuid, characteristicUuid);
+            var gattReadResult = await characteristic.ReadValueAsync();
+
+            if (gattReadResult.Status != GattCommunicationStatus.Success)
+                return null;
+
+            using (var reader = DataReader.FromBuffer(gattReadResult.Value))
+            {
+                var value = new byte[reader.UnconsumedBufferLength];
+                reader.ReadBytes(value);
+                return value;
+            }
         }
 
         public async Task<bool> WriteToCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid,
             IEnumerable<byte> buffer)
         {
-            var writeCharacteristic = await GetCharacteristicAsync(deviceUuid, serviceUuid, characteristicUuid);
+            var characteristic = await GetCharacteristicAsync(deviceUuid, serviceUuid, characteristicUuid);
             using (var writer = new DataWriter())
             {
                 writer.WriteBytes(buffer.ToArray());
-                var status = await writeCharacteristic.WriteValueAsync(writer.DetachBuffer(), GattWriteOption.WriteWithResponse);
+                var status = await characteristic.WriteValueAsync(writer.DetachBuffer(), GattWriteOption.WriteWithResponse);
                 return status == GattCommunicationStatus.Success;
             }
         }
