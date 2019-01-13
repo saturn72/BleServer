@@ -13,8 +13,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{2E0F
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BleServer.Modules.Win10BleAdapter", "Modules\BleServer.Modules.Win10BleAdapter\BleServer.Modules.Win10BleAdapter.csproj", "{5652A9A9-8833-4E46-B8EC-FE6612C4DE25}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BleServer.WebApi.Tests", "BleServer.WebApi.Tests\BleServer.WebApi.Tests.csproj", "{0F306AE4-AFB4-4E5A-BBBE-3098AFBAC8CF}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,10 +35,6 @@ Global
 		{5652A9A9-8833-4E46-B8EC-FE6612C4DE25}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5652A9A9-8833-4E46-B8EC-FE6612C4DE25}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5652A9A9-8833-4E46-B8EC-FE6612C4DE25}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0F306AE4-AFB4-4E5A-BBBE-3098AFBAC8CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0F306AE4-AFB4-4E5A-BBBE-3098AFBAC8CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0F306AE4-AFB4-4E5A-BBBE-3098AFBAC8CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0F306AE4-AFB4-4E5A-BBBE-3098AFBAC8CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
