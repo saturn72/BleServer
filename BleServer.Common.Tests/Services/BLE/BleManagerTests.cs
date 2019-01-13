@@ -108,6 +108,40 @@ namespace BleServer.Common.Tests.Services.BLE
             res.ShouldBe(writeResult);
         }
         #endregion
+        #region ReadFromCharacteristic
+        [Theory]
+        [MemberData(nameof(BleManager_BleManager_ReadFrom))]
+        public async Task BleManager_ReadFrom(IEnumerable<byte> readResult)
+        {
+            var deviceId = "device-Id";
+            var gattServiceId = "4C088D33-76C6-4094-8C4A-65A80430678A";
+            var characteristicId = "some-characteristic-id";
+            var gs = new BleGattService { DeviceId = deviceId, Uuid = Guid.Parse(gattServiceId) };
+            gs.Characteristics = new BleGattCharacteristic[] { };
+
+            var bleAdapter = new DummyBleAdapter();
+            var device = new BleDevice
+            {
+                Id = deviceId,
+                Name = "some-device-name"
+            };
+
+            var bm = new BleManager(new[] { bleAdapter }, null);
+            bleAdapter.SetGetGattServices(device, new[] { gs });
+            bleAdapter.ReadFromCharacteristicResult = readResult;
+            var res = await bm.ReadFromCharacteristic(deviceId, gattServiceId, characteristicId);
+            res.ShouldBe(readResult);
+        }
+
+        public static IEnumerable<object[]> BleManager_BleManager_ReadFrom => new[]
+        {
+            new object[]{null as IEnumerable<byte>},
+            new object[]{new byte[]{1,1,1,0,0,1}},
+        };
+
+
+        #endregion
+
 
         #region RegisterToCharacteristicNotifications
         [Theory]
@@ -232,6 +266,7 @@ namespace BleServer.Common.Tests.Services.BLE
             new Dictionary<string, IEnumerable<BleGattService>>();
 
         internal bool WriteToCharacteristicResult { get; set; }
+        internal IEnumerable<byte> ReadFromCharacteristicResult { get; set; }
 
         public Task<IEnumerable<BleGattService>> GetGattServices(string deviceUuid)
         {
@@ -252,6 +287,10 @@ namespace BleServer.Common.Tests.Services.BLE
             IEnumerable<byte> buffer)
         {
             return Task.FromResult(WriteToCharacteristicResult);
+        }
+        public Task<IEnumerable<byte>> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid)
+        {
+            return Task.FromResult(ReadFromCharacteristicResult);
         }
 
         public Task<bool> GetCharacteristicNotifications(string deviceUuid, string serviceUuid, string characteristicUuid)
@@ -279,9 +318,6 @@ namespace BleServer.Common.Tests.Services.BLE
             _gattServices[device.Id] = gattServices?.ToArray();
         }
 
-        public Task<IEnumerable<byte>> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid)
-        {
-            throw new NotImplementedException();
-        }
+
     }
 }

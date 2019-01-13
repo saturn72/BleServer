@@ -52,6 +52,18 @@ namespace BleServer.Modules.Win10BleAdapter
         public event BluetoothDeviceEventHandler DeviceDiscovered;
         public event BluetoothDeviceValueChangedEventHandler DeviceValueChanged;
 
+        public async Task<IEnumerable<byte>> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid)
+        {
+            throw new NotImplementedException();
+            // var writeCharacteristic = await GetCharacteristicAsync(deviceUuid, serviceUuid, characteristicUuid);
+            // using (var writer = new DataWriter())
+            // {
+            //     writer.WriteBytes(buffer.ToArray());
+            //     var status = await writeCharacteristic.WriteValueAsync(writer.DetachBuffer(), GattWriteOption.WriteWithResponse);
+            //     return status == GattCommunicationStatus.Success;
+            // }
+        }
+
         public async Task<bool> WriteToCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid,
             IEnumerable<byte> buffer)
         {
