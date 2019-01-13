@@ -2,7 +2,7 @@
 
 namespace BleServer.Common.Models.Characteristic
 {
-    public sealed class WriteToCharacteristicRequest
+    public sealed class BleRequest
     {
         private IEnumerable<string> _buffer;
 

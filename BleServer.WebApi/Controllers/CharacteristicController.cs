@@ -17,15 +17,15 @@ namespace BleServer.WebApi.Controllers
         {
             _blutoothService = blutoothService;
         }
-        
+
         /// <summary>
         ///     Write to secific characteristics
         /// </summary>
         [HttpPost("write")]
-        [ProducesResponseType(typeof(object), (int) HttpStatusCode.BadRequest)] // bad or missing data: . msiind Id's
-        [ProducesResponseType(typeof(object), (int) HttpStatusCode.NotAcceptable)] //device disconnectws
-        [ProducesResponseType(typeof(object), (int) HttpStatusCode.Accepted)] // everything's OK
-        public async Task<IActionResult> WriteToCharacteristic([FromBody] WriteToCharacteristicRequest writeRequest)
+        [ProducesResponseType(typeof(object), (int)HttpStatusCode.BadRequest)] // bad or missing data: . msiind Id's
+        [ProducesResponseType(typeof(object), (int)HttpStatusCode.NotAcceptable)] //device disconnectws
+        [ProducesResponseType(typeof(object), (int)HttpStatusCode.Accepted)] // everything's OK
+        public async Task<IActionResult> WriteToCharacteristic([FromBody] BleRequest writeRequest)
         {
             if (!VerifyWriteToCharacteristicsModelModel(writeRequest))
                 return BadRequest(
@@ -34,20 +34,20 @@ namespace BleServer.WebApi.Controllers
                         data = writeRequest,
                         message = "Bad or missing data"
                     });
-            var buffer = writeRequest.Buffer.Select(s=>Convert.ToByte(s, 16)).ToArray();
+            var buffer = writeRequest.Buffer.Select(s => Convert.ToByte(s, 16)).ToArray();
             var res = await _blutoothService.WriteToCharacteristic(writeRequest.DeviceUuid,
                 writeRequest.ServiceUuid, writeRequest.CharacteristicUuid, buffer);
 
             return res.ToActionResult();
         }
 
-        private bool VerifyWriteToCharacteristicsModelModel(WriteToCharacteristicRequest subscribeModel)
+        private bool VerifyWriteToCharacteristicsModelModel(BleRequest request)
         {
-            return subscribeModel != null &&
-                   !string.IsNullOrEmpty(subscribeModel.DeviceUuid) &&
-                   !string.IsNullOrEmpty(subscribeModel.ServiceUuid) &&
-                   !string.IsNullOrEmpty(subscribeModel.CharacteristicUuid) &&
-                   subscribeModel.Buffer != null && subscribeModel.Buffer.Any();
+            return request != null &&
+                   !string.IsNullOrEmpty(request.DeviceUuid) &&
+                   !string.IsNullOrEmpty(request.ServiceUuid) &&
+                   !string.IsNullOrEmpty(request.CharacteristicUuid) &&
+                   request.Buffer != null && request.Buffer.Any();
         }
 
         /// <summary>
@@ -55,9 +55,9 @@ namespace BleServer.WebApi.Controllers
         /// </summary>
         [HttpPost("read")]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.Accepted)] // everything's OK
-        public async Task<IActionResult> ReadFromCharacteristic([FromBody] SubscribeToCharacteristicRequest subscribeRequest)
+        public async Task<IActionResult> ReadFromCharacteristic([FromBody] BleRequest subscribeRequest)
         {
-            if (!VerifySubscribeToCharacteristicRequest(subscribeRequest))
+            if (!VerifySubscribeToBleRequest(subscribeRequest))
                 return BadRequest(
                     new
                     {
@@ -71,12 +71,12 @@ namespace BleServer.WebApi.Controllers
             return res.ToActionResult();
         }
 
-        private bool VerifySubscribeToCharacteristicRequest(SubscribeToCharacteristicRequest subscribeModel)
+        private bool VerifySubscribeToBleRequest(BleRequest request)
         {
-            return subscribeModel != null &&
-                   !string.IsNullOrEmpty(subscribeModel.DeviceUuid) &&
-                   !string.IsNullOrEmpty(subscribeModel.ServiceUuid) &&
-                   !string.IsNullOrEmpty(subscribeModel.CharacteristicUuid);
+            return request != null &&
+                   !string.IsNullOrEmpty(request.DeviceUuid) &&
+                   !string.IsNullOrEmpty(request.ServiceUuid) &&
+                   !string.IsNullOrEmpty(request.CharacteristicUuid);
         }
     }
 }

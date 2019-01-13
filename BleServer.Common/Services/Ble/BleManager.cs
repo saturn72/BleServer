@@ -10,19 +10,20 @@ namespace BleServer.Common.Services.Ble
 {
     public partial class BleManager : IBleManager
     {
-        private readonly INotifier _notifier;
+        private readonly INotifier _onDeviceValueChangedNotifier;
 
         #region Fields
 
-        private static object lockObject = new object();
-        protected static readonly IDictionary<string, ProxiesBluetoothDevice> Devices = new Dictionary<string, ProxiesBluetoothDevice>();
+        private object lockObject = new object();
+        protected readonly IDictionary<string, ProxiesBluetoothDevice> Devices = new Dictionary<string, ProxiesBluetoothDevice>();
         #endregion
 
         #region ctor
 
-        public BleManager(IEnumerable<IBleAdapter> bleAdapters, INotifier notifier)
+        public BleManager(IEnumerable<IBleAdapter> bleAdapters, INotifier onDeviceValueChangedNotifier)
         {
-            _notifier = notifier;
+            _onDeviceValueChangedNotifier = onDeviceValueChangedNotifier;
+
             foreach (var adapter in bleAdapters)
             {
                 adapter.DeviceDiscovered += DeviceDiscoveredHandler;
@@ -30,7 +31,7 @@ namespace BleServer.Common.Services.Ble
             }
         }
 
-        private static void DeviceDiscoveredHandler(IBleAdapter sender, BleDeviceEventArgs args)
+        private void DeviceDiscoveredHandler(IBleAdapter sender, BleDeviceEventArgs args)
         {
             var device = args.Device;
             var deviceId = device.Id;
@@ -42,10 +43,8 @@ namespace BleServer.Common.Services.Ble
 
         private void DeviceValueChangedHandler(IBleAdapter sender, BleDeviceValueChangedEventArgs args)
         {
-            Task.Run(() => _notifier.Push(args.DeviceUuid, args));
+            Task.Run(() => _onDeviceValueChangedNotifier.Push(args.DeviceUuid, args));
         }
-
-
 
         #endregion
 

@@ -35,7 +35,7 @@ namespace BleServer.Common.Tests.Services.BLE
 
         #region GetDeviceCharacteristics
         [Fact]
-        public async Task BleManager_GetDeviceCharacteristics_NotFound()
+        public void BleManager_GetDeviceCharacteristics_NotFound()
         {
             var deviceId = "device-Id";
             var gsUuid = Guid.Parse("4C088D33-76C6-4094-8C4A-65A80430678A");
@@ -52,7 +52,7 @@ namespace BleServer.Common.Tests.Services.BLE
             var bm = new BleManager(new[] { bleAdapter }, null);
             bleAdapter.SetGetGattServices(device, new[] { gs });
 
-            var task =  bm.GetDeviceCharacteristics(deviceId, "not-exists-gatt-service-id");
+            var task = bm.GetDeviceCharacteristics(deviceId, "not-exists-gatt-service-id");
 
             task.Exception.InnerExceptions.First().ShouldBeOfType<NullReferenceException>();
         }
@@ -86,12 +86,12 @@ namespace BleServer.Common.Tests.Services.BLE
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public async Task BleManager_WriteToCharacteristic_Fails(bool writeResult)
+        public async Task BleManager_WriteToCharacteristic(bool writeResult)
         {
             var deviceId = "device-Id";
             var gattServiceId = "4C088D33-76C6-4094-8C4A-65A80430678A";
             var characteristicId = "some-characteristic-id";
-            var gs = new BleGattService { DeviceId = deviceId, Uuid = Guid.Parse(gattServiceId)};
+            var gs = new BleGattService { DeviceId = deviceId, Uuid = Guid.Parse(gattServiceId) };
             gs.Characteristics = new BleGattCharacteristic[] { };
 
             var bleAdapter = new DummyBleAdapter();
@@ -104,7 +104,7 @@ namespace BleServer.Common.Tests.Services.BLE
             var bm = new BleManager(new[] { bleAdapter }, null);
             bleAdapter.SetGetGattServices(device, new[] { gs });
             bleAdapter.WriteToCharacteristicResult = writeResult;
-            var res = await  bm.WriteToCharacteristric(deviceId, gattServiceId, characteristicId, new List<byte>());
+            var res = await bm.WriteToCharacteristric(deviceId, gattServiceId, characteristicId, new List<byte>());
             res.ShouldBe(writeResult);
         }
         #endregion
@@ -134,8 +134,9 @@ namespace BleServer.Common.Tests.Services.BLE
             var res = await bm.ReadFromCharacteristic(deviceId, gattServiceId, characteristicId);
             res.ShouldBe(readResult);
         }
+
         [Fact]
-        public async Task BleManager_RecievedValueChangedFromCharacteristic_RaisesPublisher()
+        public void BleManager_ReadFromCharacteristicPasses()
         {
             const string deviceUuid = "device-Id";
             const string serviceUuid = "4C088D33-76C6-4094-8C4A-65A80430678A";
@@ -156,8 +157,8 @@ namespace BleServer.Common.Tests.Services.BLE
             bleAdapter.SetGetGattServices(device, new[] { gs });
 
             bleAdapter.RaiseDeviceValueChangedEvent(deviceUuid, serviceUuid, characteristicUuid, message);
-            notifier.Verify(n=>n.Push(It.Is<string>(s=> s == deviceUuid), It.Is<BleDeviceValueChangedEventArgs>(
-                b=>
+            notifier.Verify(n => n.Push(It.Is<string>(s => s == deviceUuid), It.Is<BleDeviceValueChangedEventArgs>(
+                b =>
                     b.DeviceUuid == deviceUuid
                     && b.ServiceUuid == serviceUuid
                     && b.CharacteristicUuid == characteristicUuid
@@ -206,7 +207,7 @@ namespace BleServer.Common.Tests.Services.BLE
         [InlineData(false)]
         public async Task BleManager_Unpair(bool expUnpairResult)
         {
-            var dummyAdapter = new DummyBleAdapter{UnpairResult = expUnpairResult};
+            var dummyAdapter = new DummyBleAdapter { UnpairResult = expUnpairResult };
 
             var bm = new BleManager(new[] { dummyAdapter }, null);
             var device = new BleDevice
@@ -263,7 +264,7 @@ namespace BleServer.Common.Tests.Services.BLE
 
         internal void RaiseDeviceValueChangedEvent(string deviceUuid, string serviceUuid, string characteristicUuid, string message)
         {
-            var args = new BleDeviceValueChangedEventArgs(deviceUuid,  serviceUuid,  characteristicUuid, message);
+            var args = new BleDeviceValueChangedEventArgs(deviceUuid, serviceUuid, characteristicUuid, message);
             DeviceValueChanged(this, args);
         }
         internal void RaiseDeviceDiscoveredEvent(BleDevice device)

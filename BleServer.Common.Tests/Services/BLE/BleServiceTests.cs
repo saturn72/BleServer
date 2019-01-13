@@ -235,9 +235,9 @@ namespace BleServer.Common.Tests.Services.BLE
         }
         #endregion
 
-        #region BleService_SubscribeToCharacteristic
+        #region BleService_ReadFromCharacteristic
         [Fact]
-        public async Task BleService_SubscribeToCharacteristic_Failed()
+        public async Task BleService_ReadFromCharacteristic_Fails()
         {
             var bleMock = new Mock<IBleManager>();
             bleMock.Setup(b => b.ReadFromCharacteristic(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(false);
@@ -254,7 +254,7 @@ namespace BleServer.Common.Tests.Services.BLE
             res.Message.ShouldContain("\'" + characteristicId + "\'");
         }
         [Fact]
-        public async Task BleService_SubscribeToCharacteristic_Throws()
+        public async Task BleService_ReadFromCharacteristicThrows()
         {
             var bleMock = new Mock<IBleManager>();
             bleMock.Setup(b => b.ReadFromCharacteristic(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -273,7 +273,7 @@ namespace BleServer.Common.Tests.Services.BLE
         }
 
         [Fact]
-        public async Task BleService_SubscribeToCharacteristic_Success()
+        public async Task BleService_ReadFromCharacteristicc_Success()
         {
             var bleMock = new Mock<IBleManager>();
             bleMock.Setup(b => b.ReadFromCharacteristic(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(true);

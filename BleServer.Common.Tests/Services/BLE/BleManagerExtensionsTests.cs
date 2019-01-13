@@ -32,7 +32,6 @@ namespace BleServer.Common.Tests.Services.BLE
             gs.ShouldBeNull();
         }
 
-      
         [Fact]
         public async Task GetGattService_ReturnService()
         {
@@ -46,7 +45,7 @@ namespace BleServer.Common.Tests.Services.BLE
             };
             var bleManager = new Mock<IBleManager>();
             bleManager.Setup(b => b.GetDeviceGattServices(It.IsAny<string>()))
-                .ReturnsAsync(new[]{expGattService});
+                .ReturnsAsync(new[] { expGattService });
 
 
             var gs = await BleManagerExtensions.GetGattServiceById(bleManager.Object, deviceId, gattServiceId);
