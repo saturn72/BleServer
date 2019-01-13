@@ -109,11 +109,11 @@ namespace BleServer.Common.Tests.Services.BLE
         }
         #endregion
 
-        #region ReadFromCharacteristic
+        #region RegisterToCharacteristicNotifications
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public async Task BleManager_ReadFromCharacteristic_Fails(bool readResult)
+        public async Task BleManager_RegisterToCharacteristicNotifications_Fails(bool readResult)
         {
             var deviceId = "device-Id";
             var gattServiceId = "4C088D33-76C6-4094-8C4A-65A80430678A";
@@ -130,13 +130,13 @@ namespace BleServer.Common.Tests.Services.BLE
 
             var bm = new BleManager(new[] { bleAdapter }, null);
             bleAdapter.SetGetGattServices(device, new[] { gs });
-            bleAdapter.ReadFromCharacteristicResult = readResult;
-            var res = await bm.ReadFromCharacteristic(deviceId, gattServiceId, characteristicId);
+            bleAdapter.BleNotificationResult = readResult;
+            var res = await bm.RegisterToCharacteristicNotifications(deviceId, gattServiceId, characteristicId);
             res.ShouldBe(readResult);
         }
 
         [Fact]
-        public void BleManager_ReadFromCharacteristicPasses()
+        public void BleManager_RegisterToCharacteristicNotificationsasses()
         {
             const string deviceUuid = "device-Id";
             const string serviceUuid = "4C088D33-76C6-4094-8C4A-65A80430678A";
@@ -254,13 +254,13 @@ namespace BleServer.Common.Tests.Services.BLE
             return Task.FromResult(WriteToCharacteristicResult);
         }
 
-        public Task<bool> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid)
+        public Task<bool> GetCharacteristicNotifications(string deviceUuid, string serviceUuid, string characteristicUuid)
         {
-            return Task.FromResult(ReadFromCharacteristicResult);
+            return Task.FromResult(BleNotificationResult);
         }
 
 
-        public bool ReadFromCharacteristicResult { get; set; }
+        public bool BleNotificationResult { get; set; }
 
         internal void RaiseDeviceValueChangedEvent(string deviceUuid, string serviceUuid, string characteristicUuid, string message)
         {
@@ -277,6 +277,11 @@ namespace BleServer.Common.Tests.Services.BLE
         {
             RaiseDeviceDiscoveredEvent(device);
             _gattServices[device.Id] = gattServices?.ToArray();
+        }
+
+        public Task<IEnumerable<byte>> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid)
+        {
+            throw new NotImplementedException();
         }
     }
 }

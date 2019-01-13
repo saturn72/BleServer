@@ -11,7 +11,8 @@ namespace BleServer.Common.Services.Ble
         event BluetoothDeviceEventHandler DeviceDiscovered;
         event BluetoothDeviceValueChangedEventHandler DeviceValueChanged;
         Task<bool> WriteToCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid, IEnumerable<byte> buffer);
-        Task<bool> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid);
+        Task<IEnumerable<byte>> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid);
+        Task<bool> GetCharacteristicNotifications(string deviceUuid, string serviceUuid, string characteristicUuid);
     }
 
     public delegate void BluetoothDeviceEventHandler(IBleAdapter sender, BleDeviceEventArgs args);

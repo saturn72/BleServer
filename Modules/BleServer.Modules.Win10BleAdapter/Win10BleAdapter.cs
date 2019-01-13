@@ -41,7 +41,7 @@ namespace BleServer.Modules.Win10BleAdapter
             if (_services.TryGetValue(srvKey, out var service))
                 return service;
 
-            var gattServices = await _devices[deviceUuid].GetGattServicesForUuidAsync(Guid.Parse(serviceUuid),BluetoothCacheMode.Cached);
+            var gattServices = await _devices[deviceUuid].GetGattServicesForUuidAsync(Guid.Parse(serviceUuid), BluetoothCacheMode.Cached);
             service = gattServices.Services.First();
 
             _services[srvKey] = service;
@@ -73,15 +73,15 @@ namespace BleServer.Modules.Win10BleAdapter
                 return characteristic;
 
             var service = await GetGattServiceByUuid(deviceUuid, serviceUuid);
-            var allCharacteristics = await service.GetCharacteristicsForUuidAsync(Guid.Parse(characteristicUuid),BluetoothCacheMode.Uncached);
-            return allCharacteristics.Characteristics.First();
+            var allCharacteristics = await service.GetCharacteristicsForUuidAsync(Guid.Parse(characteristicUuid), BluetoothCacheMode.Uncached);
+            var result = allCharacteristics.Characteristics.First();
+            _characteristics[chKey] = result;
+            return result;
         }
 
-        public async Task<bool> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid)
+        public async Task<bool> GetCharacteristicNotifications(string deviceUuid, string serviceUuid, string characteristicUuid)
         {
             var readCharacteristic = await GetCharacteristicAsync(deviceUuid, serviceUuid, characteristicUuid);
-            var chKey = BuildCharacteristicKey(deviceUuid, serviceUuid, characteristicUuid);
-            _characteristics[chKey] = readCharacteristic;
 
             var status =
                 await readCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(

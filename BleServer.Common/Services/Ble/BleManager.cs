@@ -79,10 +79,17 @@ namespace BleServer.Common.Services.Ble
             return await bleAdapter.WriteToCharacteristic(deviceUuid, serviceUuid, characteristicUuid, buffer);
         }
 
-        public async Task<bool> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid)
+        public async Task<IEnumerable<byte>> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid)
         {
             var bleAdapter = Devices[deviceUuid].Adapter;
             return await bleAdapter.ReadFromCharacteristic(deviceUuid, serviceUuid, characteristicUuid);
+        }
+
+
+        public async Task<bool> RegisterToCharacteristicNotifications(string deviceUuid, string serviceUuid, string characteristicUuid)
+        {
+            var bleAdapter = Devices[deviceUuid].Adapter;
+            return await bleAdapter.GetCharacteristicNotifications(deviceUuid, serviceUuid, characteristicUuid);
         }
     }
 }

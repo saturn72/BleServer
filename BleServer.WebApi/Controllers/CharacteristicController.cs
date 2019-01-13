@@ -25,53 +25,44 @@ namespace BleServer.WebApi.Controllers
         [ProducesResponseType(typeof(object), (int)HttpStatusCode.BadRequest)] // bad or missing data: . msiind Id's
         [ProducesResponseType(typeof(object), (int)HttpStatusCode.NotAcceptable)] //device disconnectws
         [ProducesResponseType(typeof(object), (int)HttpStatusCode.Accepted)] // everything's OK
-        public async Task<IActionResult> WriteToCharacteristic([FromBody] BleRequest writeRequest)
+        public async Task<IActionResult> WriteToCharacteristic([FromBody] BleRequest request)
         {
-            if (!VerifyWriteToCharacteristicsModelModel(writeRequest))
+            if (!(VerifyBleRequest(request) && request.Buffer != null && request.Buffer.Any()))
                 return BadRequest(
                     new
                     {
-                        data = writeRequest,
+                        data = request,
                         message = "Bad or missing data"
                     });
-            var buffer = writeRequest.Buffer.Select(s => Convert.ToByte(s, 16)).ToArray();
-            var res = await _blutoothService.WriteToCharacteristic(writeRequest.DeviceUuid,
-                writeRequest.ServiceUuid, writeRequest.CharacteristicUuid, buffer);
+            var buffer = request.Buffer.Select(s => Convert.ToByte(s, 16)).ToArray();
+            var res = await _blutoothService.WriteToCharacteristic(request.DeviceUuid,
+                request.ServiceUuid, request.CharacteristicUuid, buffer);
 
             return res.ToActionResult();
-        }
-
-        private bool VerifyWriteToCharacteristicsModelModel(BleRequest request)
-        {
-            return request != null &&
-                   !string.IsNullOrEmpty(request.DeviceUuid) &&
-                   !string.IsNullOrEmpty(request.ServiceUuid) &&
-                   !string.IsNullOrEmpty(request.CharacteristicUuid) &&
-                   request.Buffer != null && request.Buffer.Any();
         }
 
         /// <summary>
         ///     Subscribe to specific characteristics
         /// </summary>
-        [HttpPost("read")]
+        [HttpPost("notify")]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.Accepted)] // everything's OK
-        public async Task<IActionResult> ReadFromCharacteristic([FromBody] BleRequest subscribeRequest)
+        public async Task<IActionResult> GetCharacteristicNotifications([FromBody] BleRequest request)
         {
-            if (!VerifySubscribeToBleRequest(subscribeRequest))
+            if (!VerifyBleRequest(request))
                 return BadRequest(
                     new
                     {
-                        data = subscribeRequest,
+                        data = request,
                         message = "Bad or missing data"
                     });
 
-            var res = await _blutoothService.ReadFromCharacteristic(subscribeRequest.DeviceUuid,
-                subscribeRequest.ServiceUuid, subscribeRequest.CharacteristicUuid);
+            var res = await _blutoothService.GetCharacteristicNotifications(request.DeviceUuid,
+                request.ServiceUuid, request.CharacteristicUuid);
 
             return res.ToActionResult();
         }
 
-        private bool VerifySubscribeToBleRequest(BleRequest request)
+        private bool VerifyBleRequest(BleRequest request)
         {
             return request != null &&
                    !string.IsNullOrEmpty(request.DeviceUuid) &&

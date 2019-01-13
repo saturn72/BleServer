@@ -11,6 +11,7 @@ namespace BleServer.Common.Services.Ble
         Task<IEnumerable<BleGattCharacteristic>> GetDeviceCharacteristics(string deviceUuid, string serviceUuid);
         Task<bool> Unpair(string deviceUuid);
         Task<bool> WriteToCharacteristric(string deviceUuid, string serviceUuid, string characteristicUuid, IEnumerable<byte> buffer);
-        Task<bool> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid);
+        Task<IEnumerable<byte>> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid);
+        Task<bool> RegisterToCharacteristicNotifications(string deviceUuid, string serviceUuid, string characteristicUuid);
     }
 }

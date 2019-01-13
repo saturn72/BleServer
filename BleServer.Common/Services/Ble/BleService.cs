@@ -102,7 +102,34 @@ namespace BleServer.Common.Services.Ble
             return response;
         }
 
-        public async Task<ServiceResponse<string>> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid)
+        public async Task<ServiceResponse<IEnumerable<byte>>> ReadFromCharacteristic(string deviceUuid,
+                    string serviceUuid, string characteristicUuid)
+        {
+            var errMessage = "";
+            var response = new ServiceResponse<IEnumerable<byte>>();
+
+            try
+            {
+                response.Data = await _bluetoothManager.ReadFromCharacteristic(deviceUuid, serviceUuid, characteristicUuid);
+
+                var successFlag = response.Data != null;
+                response.Result = successFlag ? ServiceResponseResult.Success : ServiceResponseResult.Fail;
+                if (successFlag)
+                    return response;
+            }
+            catch (Exception e)
+            {
+                errMessage = "\n" + e.Message;
+            }
+
+            if (response.Result == ServiceResponseResult.NotSet)
+                response.Result = ServiceResponseResult.NotAcceptable;
+
+            response.Message = $"Failed to read from characteristic. device Id: \'{deviceUuid}\' gatt-service Id: \'{serviceUuid}\' characteristic id: \'{characteristicUuid}\'.{errMessage}";
+            return response;
+        }
+
+        public async Task<ServiceResponse<string>> GetCharacteristicNotifications(string deviceUuid, string serviceUuid, string characteristicUuid)
         {
             bool res;
             var errMessage = "";
@@ -113,7 +140,7 @@ namespace BleServer.Common.Services.Ble
 
             try
             {
-                res = await _bluetoothManager.ReadFromCharacteristic(deviceUuid, serviceUuid, characteristicUuid);
+                res = await _bluetoothManager.RegisterToCharacteristicNotifications(deviceUuid, serviceUuid, characteristicUuid);
             }
             catch (Exception e)
             {
@@ -129,7 +156,7 @@ namespace BleServer.Common.Services.Ble
 
             if (!res)
                 response.Message =
-                    $"Failed to read from characteristic. device Id: \'{deviceUuid}\' gatt-service Id: \'{serviceUuid}\' characteristic id: \'{characteristicUuid}\'{errMessage}";
+                    $"Failed to register to characteristic notifications. device Id: \'{deviceUuid}\' gatt-service Id: \'{serviceUuid}\' characteristic id: \'{characteristicUuid}\'{errMessage}";
             return response;
         }
     }
