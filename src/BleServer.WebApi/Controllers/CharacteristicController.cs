@@ -41,6 +41,31 @@ namespace BleServer.WebApi.Controllers
             return res.ToActionResult();
         }
 
+
+        /// <summary>
+        ///     Write to secific characteristics
+        /// </summary>
+        [HttpPost("read")]
+        [ProducesResponseType(typeof(object), (int)HttpStatusCode.BadRequest)] // bad or missing data: . msiind Id's
+        [ProducesResponseType(typeof(object), (int)HttpStatusCode.NotAcceptable)] //device disconnectws
+        [ProducesResponseType(typeof(object), (int)HttpStatusCode.Accepted)] // everything's OK
+        public async Task<IActionResult> ReadFromCharacteristic([FromBody] BleRequest request)
+        {
+            if (!VerifyBleRequest(request))
+                return BadRequest(
+                    new
+                    {
+                        data = request,
+                        message = "Bad or missing data"
+                    });
+            var res = await _blutoothService.ReadFromCharacteristic(request.DeviceUuid,
+                request.ServiceUuid, request.CharacteristicUuid);
+
+            return res.ToActionResult();
+        }
+
+
+
         /// <summary>
         ///     Subscribe to specific characteristics
         /// </summary>

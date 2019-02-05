@@ -126,7 +126,7 @@ namespace BleServer.Modules.Win10BleAdapter
             }
 
             var newValue = Encoding.UTF8.GetString(buffer, 0, buffer.Length);
-            var valueChanged = new BleDeviceValueChangedEventArgs(sender.Service.Device.DeviceId,
+            var valueChanged = new BleDeviceValueChangedEventArgs(sender.Service.Session.DeviceId.Id,
                 sender.Service.Uuid.ToString(),
                 sender.Uuid.ToString(),
                 newValue);

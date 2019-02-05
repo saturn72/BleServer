@@ -29,9 +29,9 @@ namespace BleServer.WebApi
             var win10BleAdapter = new Win10BleAdapter();
             win10BleAdapter.Start();
             services.AddSingleton<IBleAdapter>(win10BleAdapter);
-            services.AddSingleton<IBleManager>(sr=> new BleManager(new[] { win10BleAdapter }, sr.GetService<INotifier>()));
+            services.AddSingleton<IBleManager>(sr => new BleManager(new[] { win10BleAdapter }, sr.GetService<INotifier>()));
 
-            services.AddScoped<IBleService,BleService>();
+            services.AddScoped<IBleService, BleService>();
 
             services.AddSwaggerGen(c =>
             {
