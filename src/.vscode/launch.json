@@ -10,7 +10,7 @@
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/BleServer.WebApi/bin/Debug/net472/BleServer.WebApi.exe",
             "args": [],
-            "cwd": "${workspaceFolder}/BleServer.WebApi",
+            "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
             "internalConsoleOptions": "openOnSessionStart",
             "launchBrowser": {

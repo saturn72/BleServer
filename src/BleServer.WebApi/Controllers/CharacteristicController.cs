@@ -34,9 +34,8 @@ namespace BleServer.WebApi.Controllers
                         data = request,
                         message = "Bad or missing data"
                     });
-            var buffer = request.Buffer.Select(s => Convert.ToByte(s, 16)).ToArray();
             var res = await _blutoothService.WriteToCharacteristic(request.DeviceUuid,
-                request.ServiceUuid, request.CharacteristicUuid, buffer);
+                request.ServiceUuid, request.CharacteristicUuid, request.Buffer);
 
             return res.ToActionResult();
         }
