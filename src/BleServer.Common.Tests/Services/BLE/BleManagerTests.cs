@@ -217,7 +217,7 @@ namespace BleServer.Common.Tests.Services.BLE
 
         [Fact]
         [Trait("Category", "non-deterministic")]
-        public void BleManager_RegisterToDiscoveredEvent()
+        public void BleManager_ConnectAndDisconnectDevice()
         {
             var dummyAdapter = new DummyBleAdapter();
 
@@ -234,6 +234,11 @@ namespace BleServer.Common.Tests.Services.BLE
             var d = devices.First();
             d.Name = device.Name;
             d.Id = device.Id;
+
+              dummyAdapter.RaiseDeviceDisconnectedEvent(device);
+             devices = bm.GetDiscoveredDevices();
+            devices.Count().ShouldBe(0);
+
         }
 
         [Theory]
@@ -281,6 +286,7 @@ namespace BleServer.Common.Tests.Services.BLE
         }
 
         public event BluetoothDeviceEventHandler DeviceDiscovered;
+        public event BluetoothDeviceEventHandler DeviceDisconnected;
         public event BluetoothDeviceValueChangedEventHandler DeviceValueChanged;
 
         public Task<bool> WriteToCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid,
@@ -310,6 +316,11 @@ namespace BleServer.Common.Tests.Services.BLE
         {
             var bdea = new BleDeviceEventArgs(device);
             DeviceDiscovered(this, bdea);
+        } 
+        internal void RaiseDeviceDisconnectedEvent(BleDevice device)
+        {
+            var bdea = new BleDeviceEventArgs(device);
+            DeviceDisconnected(this, bdea);
         }
 
         internal void SetGetGattServices(BleDevice device, IEnumerable<BleGattService> gattServices)

@@ -27,6 +27,7 @@ namespace BleServer.Common.Services.Ble
             foreach (var adapter in bleAdapters)
             {
                 adapter.DeviceDiscovered += DeviceDiscoveredHandler;
+                adapter.DeviceDisconnected += DeviceDisconnectedHandler;
                 adapter.DeviceValueChanged += DeviceValueChangedHandler;
             }
         }
@@ -38,6 +39,15 @@ namespace BleServer.Common.Services.Ble
             lock (lockObject)
             {
                 Devices[deviceId] = new ProxiesBluetoothDevice(sender, device);
+            }
+        }
+         private void DeviceDisconnectedHandler(IBleAdapter sender, BleDeviceEventArgs args)
+        {
+            var device = args.Device;
+            var deviceId = device.Id;
+            lock (lockObject)
+            {
+                Devices.Remove(deviceId);
             }
         }
 
