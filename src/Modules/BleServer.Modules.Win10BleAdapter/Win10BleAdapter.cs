@@ -25,7 +25,7 @@ namespace BleServer.Modules.Win10BleAdapter
 
             if (result)
             {
-                _devices.Remove(deviceId);
+                ClearDevice(deviceId);
                 OnDeviceDisconnected(new BleDeviceEventArgs(d.ToDomainModel()));
             }
             return result;
@@ -89,7 +89,7 @@ namespace BleServer.Modules.Win10BleAdapter
         private async Task<GattCharacteristic> GetCharacteristicAsync(string deviceUuid, string serviceUuid,
             string characteristicUuid)
         {
-            var chKey = BuildCharacteristicKey(deviceUuid, serviceUuid, characteristicUuid);
+            var chKey = $"{deviceUuid}_{serviceUuid}_{characteristicUuid}";
 
             if (_characteristics.TryGetValue(chKey, out var characteristic))
                 return characteristic;
@@ -114,14 +114,6 @@ namespace BleServer.Modules.Win10BleAdapter
 
             return result;
         }
-
-
-        private string BuildCharacteristicKey(string deviceUuid, string serviceUuid,
-            string characteristicUuid)
-        {
-            return $"{deviceUuid}_{serviceUuid}_{characteristicUuid}";
-        }
-
         private void ProcessAndNotify(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
             byte[] buffer;
@@ -192,7 +184,7 @@ namespace BleServer.Modules.Win10BleAdapter
                 lock (lockObj)
                 {
                     if (!_devices.ContainsKey(bleDeviceId))
-                        _devices[bleDeviceId] = bleDevice;   
+                        _devices[bleDeviceId] = bleDevice;
                 }
 
                 OnDeviceDiscovered(new BleDeviceEventArgs(bleDevice.ToDomainModel()));
@@ -200,12 +192,25 @@ namespace BleServer.Modules.Win10BleAdapter
                     {
                         if (sender.ConnectionStatus == BluetoothConnectionStatus.Disconnected && _devices.ContainsKey(bleDevice.DeviceId))
                         {
-                            _devices.Remove(bleDevice.DeviceId);
+                            ClearDevice(bleDevice.DeviceId);
                             OnDeviceDisconnected(new BleDeviceEventArgs(bleDevice.ToDomainModel()));
                         }
                     };
             };
             return bleWatcher;
+        }
+
+        private void ClearDevice(string deviceId)
+        {
+            var charsToRemove = _characteristics.Where(x => x.Key.StartsWith(deviceId)).ToArray();
+            for (int i = 0; i < charsToRemove.Count(); i++)
+                _characteristics.Remove(charsToRemove.ElementAt(i));
+
+            var servicesToRemove = _services.Where(x => x.Key.StartsWith(deviceId)).ToArray();
+            for (int i = 0; i < servicesToRemove.Count(); i++)
+                _services.Remove(servicesToRemove.ElementAt(i));
+
+            _devices.Remove(deviceId);
         }
 
         protected virtual void OnDeviceDiscovered(BleDeviceEventArgs args)

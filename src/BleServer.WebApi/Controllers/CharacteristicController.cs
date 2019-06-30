@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using BleServer.Common.Models.Characteristic;
@@ -21,7 +20,7 @@ namespace BleServer.WebApi.Controllers
         /// <summary>
         ///     Write to secific characteristics
         /// </summary>
-        [HttpPost("write")]
+        [HttpPost("rx")]
         [ProducesResponseType(typeof(object), (int)HttpStatusCode.BadRequest)] // bad or missing data: . msiind Id's
         [ProducesResponseType(typeof(object), (int)HttpStatusCode.NotAcceptable)] //device disconnectws
         [ProducesResponseType(typeof(object), (int)HttpStatusCode.Accepted)] // everything's OK
@@ -34,6 +33,7 @@ namespace BleServer.WebApi.Controllers
                         data = request,
                         message = "Bad or missing data"
                     });
+
             var res = await _blutoothService.WriteToCharacteristic(request.DeviceUuid,
                 request.ServiceUuid, request.CharacteristicUuid, request.Buffer);
 
@@ -44,7 +44,7 @@ namespace BleServer.WebApi.Controllers
         /// <summary>
         ///     Write to secific characteristics
         /// </summary>
-        [HttpPost("read")]
+        [HttpPost("tx")]
         [ProducesResponseType(typeof(object), (int)HttpStatusCode.BadRequest)] // bad or missing data: . msiind Id's
         [ProducesResponseType(typeof(object), (int)HttpStatusCode.NotAcceptable)] //device disconnectws
         [ProducesResponseType(typeof(object), (int)HttpStatusCode.Accepted)] // everything's OK
