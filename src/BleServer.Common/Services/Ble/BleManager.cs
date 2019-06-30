@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using BleServer.Common.Models;
 using BleServer.Common.Services.Notifications;
@@ -38,7 +36,8 @@ namespace BleServer.Common.Services.Ble
             var deviceId = device.Id;
             lock (lockObject)
             {
-                Devices[deviceId] = new ProxiesBluetoothDevice(sender, device);
+                if(!Devices.ContainsKey(deviceId))
+                    Devices[deviceId] = new ProxiesBluetoothDevice(sender, device);
             }
         }
          private void DeviceDisconnectedHandler(IBleAdapter sender, BleDeviceEventArgs args)

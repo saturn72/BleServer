@@ -1,4 +1,5 @@
-﻿using BleServer.Common.Services.Ble;
+﻿using System;
+using BleServer.Common.Services.Ble;
 using BleServer.Common.Services.Notifications;
 using BleServer.Modules.Win10BleAdapter;
 using Microsoft.AspNetCore.Builder;
@@ -43,6 +44,8 @@ namespace BleServer.WebApi
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            InitAppServices(app.ApplicationServices);
+            
             app.UseStaticFiles();
             if (env.IsDevelopment())
             {
@@ -64,6 +67,11 @@ namespace BleServer.WebApi
             });
 
             app.UseMvc();
+        }
+
+        private void InitAppServices(IServiceProvider serviceProvider)
+        {
+            serviceProvider.GetService<IBleManager>();
         }
     }
 }

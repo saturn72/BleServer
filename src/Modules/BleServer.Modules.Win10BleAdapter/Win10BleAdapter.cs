@@ -187,24 +187,22 @@ namespace BleServer.Modules.Win10BleAdapter
                 var bleDevice = await ExtractBleDeviceByBluetoothAddress(btAdv.BluetoothAddress);
                 if (bleDevice == null)
                     return;
-
                 var bleDeviceId = bleDevice.DeviceId;
 
                 lock (lockObj)
                 {
                     if (!_devices.ContainsKey(bleDeviceId))
-                        _devices[bleDeviceId] = bleDevice;
+                        _devices[bleDeviceId] = bleDevice;   
                 }
 
                 OnDeviceDiscovered(new BleDeviceEventArgs(bleDevice.ToDomainModel()));
-
                 bleDevice.ConnectionStatusChanged += (sender, args) =>
                     {
                         if (sender.ConnectionStatus == BluetoothConnectionStatus.Disconnected && _devices.ContainsKey(bleDevice.DeviceId))
-                 {
-                             _devices.Remove(bleDevice.DeviceId);
-                             OnDeviceDisconnected(new BleDeviceEventArgs(bleDevice.ToDomainModel()));
-                 }
+                        {
+                            _devices.Remove(bleDevice.DeviceId);
+                            OnDeviceDisconnected(new BleDeviceEventArgs(bleDevice.ToDomainModel()));
+                        }
                     };
             };
             return bleWatcher;
