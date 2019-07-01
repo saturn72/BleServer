@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Shouldly;
 
-namespace BleServer.E2E
+namespace ConnectivityServer.E2E
 {
     [TestFixture]
     public class TxRxTests
@@ -27,7 +27,7 @@ namespace BleServer.E2E
         {
             _client = new HttpClient()
             {
-                BaseAddress = new Uri("http://localhost:5000/")
+                BaseAddress = new Uri("http://localhost:56963/")
             };
             var deviceRes = await _client.GetAsync("api/device");
             var deviceContent = await deviceRes.Content.ReadAsStringAsync();
@@ -37,7 +37,7 @@ namespace BleServer.E2E
 
         }
         [Test]
-        [Repeat(1000)]
+        [Repeat(3000)]
         public async Task RxTxMainTest()
         {
             var notifyBody = new

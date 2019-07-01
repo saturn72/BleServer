@@ -16,7 +16,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "BleServer3": {
+    "ConnectivityServer3": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "swagger",

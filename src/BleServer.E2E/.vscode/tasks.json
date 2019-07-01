@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/BleServer.E2E.csproj"
+                "${workspaceFolder}/ConnectivityServer.E2E.csproj"
             ],
             "problemMatcher": "$tsc"
         },
@@ -17,7 +17,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/BleServer.E2E.csproj"
+                "${workspaceFolder}/ConnectivityServer.E2E.csproj"
             ],
             "problemMatcher": "$tsc"
         },
@@ -28,7 +28,7 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/BleServer.E2E.csproj"
+                "${workspaceFolder}/ConnectivityServer.E2E.csproj"
             ],
             "problemMatcher": "$tsc"
         }

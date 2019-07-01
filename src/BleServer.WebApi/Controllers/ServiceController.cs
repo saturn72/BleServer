@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using BleServer.Common.Models;
-using BleServer.Common.Services;
-using BleServer.Common.Services.Ble;
+using ConnectivityServer.Common.Models;
+using ConnectivityServer.Common.Services;
+using ConnectivityServer.Common.Services.Ble;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BleServer.WebApi.Controllers
+namespace ConnectivityServer.WebApi.Controllers
 {
     [Route("api/[controller]")]
     public class ServiceController : Controller
@@ -23,8 +23,8 @@ namespace BleServer.WebApi.Controllers
         /// </summary>
         /// <param name="deviceId">device's Id</param>
         [HttpGet("{deviceId}")]
-        [ProducesResponseType(typeof(object), (int) HttpStatusCode.NotFound)]
-        [ProducesResponseType(typeof(IEnumerable<BleGattService>), (int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(object), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(IEnumerable<BleGattService>), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetGattServicesByDeviceId(string deviceId)
         {
             var gattServices = await _blutoothService.GetGattServicesByDeviceId(deviceId);

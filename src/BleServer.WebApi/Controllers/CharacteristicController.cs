@@ -1,11 +1,11 @@
 ﻿using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using BleServer.Common.Models.Characteristic;
-using BleServer.Common.Services.Ble;
+using ConnectivityServer.Common.Models.Characteristic;
+using ConnectivityServer.Common.Services.Ble;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BleServer.WebApi.Controllers
+namespace ConnectivityServer.WebApi.Controllers
 {
     [Route("api/[controller]")]
     public class CharacteristicController : Controller

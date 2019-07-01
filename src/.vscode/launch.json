@@ -8,7 +8,7 @@
             "type": "clr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/BleServer.WebApi/bin/Debug/net472/BleServer.WebApi.exe",
+            "program": "${workspaceFolder}/ConnectivityServer.WebApi/bin/Debug/net472/ConnectivityServer.WebApi.exe",
             "args": [],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,

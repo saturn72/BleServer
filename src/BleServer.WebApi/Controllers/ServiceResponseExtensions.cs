@@ -1,10 +1,10 @@
-﻿using BleServer.Common.Services;
+﻿using ConnectivityServer.Common.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 
-namespace BleServer.WebApi.Controllers
+namespace ConnectivityServer.WebApi.Controllers
 {
     /// <summary>
     ///     ServiceResponse object's extensions

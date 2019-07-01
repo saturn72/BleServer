@@ -1,10 +1,10 @@
 ﻿using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using BleServer.Common.Models;
-using BleServer.Common.Services.Ble;
+using ConnectivityServer.Common.Models;
+using ConnectivityServer.Common.Services.Ble;
 
-namespace BleServer.WebApi.Controllers
+namespace ConnectivityServer.WebApi.Controllers
 {
     [Route("api/[controller]")]
     public class DeviceController : Controller
@@ -47,7 +47,7 @@ namespace BleServer.WebApi.Controllers
             var wasDisconnected = await _blutoothservice.UnpairDeviceById(id);
             return wasDisconnected
                 ? Accepted()
-                : StatusCode((int) HttpStatusCode.NotAcceptable, new
+                : StatusCode((int)HttpStatusCode.NotAcceptable, new
                 {
                     message = "Failed to disconnect device",
                     @id = id

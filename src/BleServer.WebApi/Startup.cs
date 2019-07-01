@@ -1,14 +1,14 @@
 ﻿using System;
-using BleServer.Common.Services.Ble;
-using BleServer.Common.Services.Notifications;
-using BleServer.Modules.Win10BleAdapter;
+using ConnectivityServer.Common.Services.Ble;
+using ConnectivityServer.Common.Services.Notifications;
+using ConnectivityServer.Modules.Win10BleAdapter;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
 
-namespace BleServer.WebApi
+namespace ConnectivityServer.WebApi
 {
     public class Startup
     {
@@ -45,7 +45,7 @@ namespace BleServer.WebApi
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             InitAppServices(app.ApplicationServices);
-            
+
             app.UseStaticFiles();
             if (env.IsDevelopment())
             {
