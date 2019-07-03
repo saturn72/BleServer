@@ -285,8 +285,8 @@ namespace ConnectivityServer.Common.Tests.Services.BLE
             return Task.FromResult(UnpairResult);
         }
 
-        public event BluetoothDeviceEventHandler DeviceDiscovered;
-        public event BluetoothDeviceEventHandler DeviceDisconnected;
+        public event BleDeviceEventHandler DeviceDiscovered;
+        public event BleDeviceEventHandler DeviceDisconnected;
         public event BluetoothDeviceValueChangedEventHandler DeviceValueChanged;
 
         public Task<bool> WriteToCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid,

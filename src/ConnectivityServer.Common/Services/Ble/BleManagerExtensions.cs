@@ -14,7 +14,7 @@ namespace ConnectivityServer.Common.Services.Ble
                 var allGattServices = await bleManager.GetDeviceGattServices(deviceId);
                 return allGattServices?.FirstOrDefault(g => g.Uuid == Guid.Parse(gattServiceId));
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return null;
             }

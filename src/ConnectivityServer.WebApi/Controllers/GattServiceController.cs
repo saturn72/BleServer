@@ -8,12 +8,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ConnectivityServer.WebApi.Controllers
 {
-    [Route("api/[controller]")]
-    public class ServiceController : Controller
+    [Route("api/ble/[controller]")]
+    public class GattServiceController : Controller
     {
         private readonly IBleService _blutoothService;
 
-        public ServiceController(IBleService blutoothService)
+        public GattServiceController(IBleService blutoothService)
         {
             _blutoothService = blutoothService;
         }
@@ -21,18 +21,18 @@ namespace ConnectivityServer.WebApi.Controllers
         /// <summary>
         ///     Gets all GATT services
         /// </summary>
-        /// <param name="deviceId">device's Id</param>
-        [HttpGet("{deviceId}")]
+        /// <param name="id">device's Id</param>
+        [HttpGet("{id}")]
         [ProducesResponseType(typeof(object), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(IEnumerable<BleGattService>), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetGattServicesByDeviceId(string deviceId)
+        public async Task<IActionResult> GetGattServicesByDeviceId(string id)
         {
-            var gattServices = await _blutoothService.GetGattServicesByDeviceId(deviceId);
+            var gattServices = await _blutoothService.GetGattServicesByDeviceId(id);
             if (gattServices.Result == ServiceResponseResult.NotFound)
                 return NotFound(new
                 {
                     message = "Failed to find thre required resource",
-                    id = deviceId
+                    id = id
                 });
             return Ok(gattServices.Data ?? new BleGattService[] { });
         }

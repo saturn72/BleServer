@@ -6,9 +6,9 @@ namespace ConnectivityServer.Common.Services.Ble
     {
         #region nested classes
 
-        public class ProxiesBluetoothDevice
+        public class ProxiedBleDevice
         {
-            public ProxiesBluetoothDevice(IBleAdapter adapter, BleDevice device)
+            public ProxiedBleDevice(IBleAdapter adapter, BleDevice device)
             {
                 Device = device;
                 Adapter = adapter;

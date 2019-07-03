@@ -13,7 +13,7 @@ namespace ConnectivityServer.Common.Services.Ble
         #region Fields
 
         private object lockObject = new object();
-        protected readonly IDictionary<string, ProxiesBluetoothDevice> Devices = new Dictionary<string, ProxiesBluetoothDevice>();
+        protected readonly IDictionary<string, ProxiedBleDevice> Devices = new Dictionary<string, ProxiedBleDevice>();
         #endregion
 
         #region ctor
@@ -37,7 +37,7 @@ namespace ConnectivityServer.Common.Services.Ble
             lock (lockObject)
             {
                 if (!Devices.ContainsKey(deviceId))
-                    Devices[deviceId] = new ProxiesBluetoothDevice(sender, device);
+                    Devices[deviceId] = new ProxiedBleDevice(sender, device);
             }
         }
         private void DeviceDisconnectedHandler(IBleAdapter sender, BleDeviceEventArgs args)

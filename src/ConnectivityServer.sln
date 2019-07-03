@@ -3,17 +3,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConnectivityServer.Common", "ConnectivityServer.Common\ConnectivityServer.Common.csproj", "{CD178CDF-6AA6-4923-91A2-CC9B0CE96324}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConnectivityServer.Common", "ConnectivityServer.Common\ConnectivityServer.Common.csproj", "{CD178CDF-6AA6-4923-91A2-CC9B0CE96324}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConnectivityServer.Common.Tests", "ConnectivityServer.Common.Tests\ConnectivityServer.Common.Tests.csproj", "{C388E236-1E68-4578-A013-A654017F57C6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConnectivityServer.Common.Tests", "ConnectivityServer.Common.Tests\ConnectivityServer.Common.Tests.csproj", "{C388E236-1E68-4578-A013-A654017F57C6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConnectivityServer.WebApi", "ConnectivityServer.WebApi\ConnectivityServer.WebApi.csproj", "{9744CE18-0EEE-432F-8394-351760C3F4F9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConnectivityServer.WebApi", "ConnectivityServer.WebApi\ConnectivityServer.WebApi.csproj", "{9744CE18-0EEE-432F-8394-351760C3F4F9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{9FBA4707-55E7-4D11-B2BF-38D8B12ADD3A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConnectivityServer.Modules.Win10BleAdapter", "Modules\ConnectivityServer.Modules.Win10BleAdapter\ConnectivityServer.Modules.Win10BleAdapter.csproj", "{B50D00A3-24B3-43EB-8B3E-163112AB5DF4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConnectivityServer.Modules.Win10BleAdapter", "Modules\ConnectivityServer.Modules.Win10BleAdapter\ConnectivityServer.Modules.Win10BleAdapter.csproj", "{B50D00A3-24B3-43EB-8B3E-163112AB5DF4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConnectivityServer.E2E", "ConnectivityServer.E2E\ConnectivityServer.E2E.csproj", "{1568298E-7B22-41B8-AA21-84B32810C560}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConnectivityServer.E2E", "ConnectivityServer.E2E\ConnectivityServer.E2E.csproj", "{1568298E-7B22-41B8-AA21-84B32810C560}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConnectivityServer.WebApi.Tests", "ConnectivityServer.WebApi.Tests\ConnectivityServer.WebApi.Tests.csproj", "{3FDE96C6-F24C-44F1-9D94-6DF164A017A3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,9 +25,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{CD178CDF-6AA6-4923-91A2-CC9B0CE96324}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -88,8 +87,26 @@ Global
 		{1568298E-7B22-41B8-AA21-84B32810C560}.Release|x64.Build.0 = Release|Any CPU
 		{1568298E-7B22-41B8-AA21-84B32810C560}.Release|x86.ActiveCfg = Release|Any CPU
 		{1568298E-7B22-41B8-AA21-84B32810C560}.Release|x86.Build.0 = Release|Any CPU
+		{3FDE96C6-F24C-44F1-9D94-6DF164A017A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FDE96C6-F24C-44F1-9D94-6DF164A017A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FDE96C6-F24C-44F1-9D94-6DF164A017A3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3FDE96C6-F24C-44F1-9D94-6DF164A017A3}.Debug|x64.Build.0 = Debug|Any CPU
+		{3FDE96C6-F24C-44F1-9D94-6DF164A017A3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3FDE96C6-F24C-44F1-9D94-6DF164A017A3}.Debug|x86.Build.0 = Debug|Any CPU
+		{3FDE96C6-F24C-44F1-9D94-6DF164A017A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FDE96C6-F24C-44F1-9D94-6DF164A017A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FDE96C6-F24C-44F1-9D94-6DF164A017A3}.Release|x64.ActiveCfg = Release|Any CPU
+		{3FDE96C6-F24C-44F1-9D94-6DF164A017A3}.Release|x64.Build.0 = Release|Any CPU
+		{3FDE96C6-F24C-44F1-9D94-6DF164A017A3}.Release|x86.ActiveCfg = Release|Any CPU
+		{3FDE96C6-F24C-44F1-9D94-6DF164A017A3}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{B50D00A3-24B3-43EB-8B3E-163112AB5DF4} = {9FBA4707-55E7-4D11-B2BF-38D8B12ADD3A}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5F0D32C4-B804-45D7-8071-7A64B29BFDFE}
 	EndGlobalSection
 EndGlobal

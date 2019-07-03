@@ -6,7 +6,7 @@ using ConnectivityServer.Common.Services.Ble;
 
 namespace ConnectivityServer.WebApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/ble/[controller]")]
     public class DeviceController : Controller
     {
         private readonly IBleService _blutoothservice;
@@ -17,14 +17,14 @@ namespace ConnectivityServer.WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllDiscoveredDevicesAsync()
+        public async Task<IActionResult> GetAllDiscoveredDevices()
         {
             var devices = await _blutoothservice.GetDevices() ?? new BleDevice[] { };
             return Ok(devices);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetDeviceByIdAsync(string id)
+        public async Task<IActionResult> GetDeviceById(string id)
         {
             var device = await _blutoothservice.GetDeviceById(id);
             return device != null
@@ -42,7 +42,7 @@ namespace ConnectivityServer.WebApi.Controllers
         /// <param name="id">deviceId</param>
         /// <returns></returns>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DisconnectDeviceAsync(string id)
+        public async Task<IActionResult> DisconnectDeviceById(string id)
         {
             var wasDisconnected = await _blutoothservice.UnpairDeviceById(id);
             return wasDisconnected

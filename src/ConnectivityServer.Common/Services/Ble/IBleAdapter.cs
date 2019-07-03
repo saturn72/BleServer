@@ -6,8 +6,8 @@ namespace ConnectivityServer.Common.Services.Ble
 {
     public interface IBleAdapter
     {
-        event BluetoothDeviceEventHandler DeviceDiscovered;
-        event BluetoothDeviceEventHandler DeviceDisconnected;
+        event BleDeviceEventHandler DeviceDiscovered;
+        event BleDeviceEventHandler DeviceDisconnected;
         event BluetoothDeviceValueChangedEventHandler DeviceValueChanged;
         Task<IEnumerable<BleGattService>> GetGattServices(string deviceUuid);
         Task<bool> Unpair(string deviceId);
@@ -16,6 +16,6 @@ namespace ConnectivityServer.Common.Services.Ble
         Task<bool> GetCharacteristicNotifications(string deviceUuid, string serviceUuid, string characteristicUuid);
     }
 
-    public delegate void BluetoothDeviceEventHandler(IBleAdapter sender, BleDeviceEventArgs args);
+    public delegate void BleDeviceEventHandler(IBleAdapter sender, BleDeviceEventArgs args);
     public delegate void BluetoothDeviceValueChangedEventHandler(IBleAdapter sender, BleDeviceValueChangedEventArgs args);
 }

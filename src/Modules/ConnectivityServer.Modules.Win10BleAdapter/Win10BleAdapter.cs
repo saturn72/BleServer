@@ -54,8 +54,8 @@ namespace ConnectivityServer.Modules.Win10BleAdapter
             return service;
         }
 
-        public event BluetoothDeviceEventHandler DeviceDiscovered;
-        public event BluetoothDeviceEventHandler DeviceDisconnected;
+        public event BleDeviceEventHandler DeviceDiscovered;
+        public event BleDeviceEventHandler DeviceDisconnected;
         public event BluetoothDeviceValueChangedEventHandler DeviceValueChanged;
 
         public async Task<IEnumerable<byte>> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid)
