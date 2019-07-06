@@ -188,17 +188,17 @@ namespace ConnectivityServer.Modules.Win10BleAdapter
                 }
 
                 OnDeviceDiscovered(new BleDeviceEventArgs(bleDevice.ToDomainModel()));
-                bleDevice.ConnectionStatusChanged += RemoveDeviceFromCollection;
-                return bleWatcher;
+                bleDevice.ConnectionStatusChanged += RemoveDevicefromCollectionndPublishEvent;
             };
+            return bleWatcher;
         }
         private void RemoveDevicefromCollectionndPublishEvent(BluetoothLEDevice sender, object args)
         {
-            if (sender.ConnectionStatus == BluetoothConnectionStatus.Disconnected && 
-                _devices.ContainsKey(bleDevice.DeviceId))
+            if (sender.ConnectionStatus == BluetoothConnectionStatus.Disconnected &&
+                _devices.ContainsKey(sender.DeviceId))
             {
-                ClearDevice(bleDevice.DeviceId);
-                OnDeviceDisconnected(new BleDeviceEventArgs(bleDevice.ToDomainModel()));
+                ClearDevice(sender.DeviceId);
+                OnDeviceDisconnected(new BleDeviceEventArgs(sender.ToDomainModel()));
             }
         }
         private void ClearDevice(string deviceId)
