@@ -41,7 +41,7 @@ namespace ConnectivityServer.E2E
         {
             var notifyBody = new
             {
-                deviceUuid = "BluetoothLE#BluetoothLE5c:f3:70:8b:2c:d7-cd:e2:c6:0f:3c:74",
+                deviceUuid,
                 serviceUuid = "6e400001-b5a3-f393-e0a9-e50e24dcca9e",
                 characteristicUuid = Tx
             };
