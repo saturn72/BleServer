@@ -7,6 +7,7 @@ namespace ConnectivityServer.Common.Services.Ble
     public interface IBleAdapter
     {
         event BleDeviceEventHandler DeviceDiscovered;
+        event BleDeviceEventHandler DeviceConnected;
         event BleDeviceEventHandler DeviceDisconnected;
         event BluetoothDeviceValueChangedEventHandler DeviceValueChanged;
         Task<IEnumerable<BleGattService>> GetGattServices(string deviceUuid);

@@ -24,7 +24,7 @@ namespace ConnectivityServer.Common.Tests.Services.BLE
                 Name = "some-device-name"
             };
 
-            var bm = new BleManager(new[] { bleAdapter }, null);
+            var bm = new BleManager(new[] { bleAdapter }, null, null);
             bleAdapter.SetGetGattServices(device, gattServices);
 
             var res = await bm.GetDeviceGattServices(device.Id);
@@ -73,7 +73,7 @@ namespace ConnectivityServer.Common.Tests.Services.BLE
                 Name = "some-device-name"
             };
 
-            var bm = new BleManager(new[] { bleAdapter }, null);
+            var bm = new BleManager(new[] { bleAdapter }, null, null);
             bleAdapter.SetGetGattServices(device, new[] { gs });
 
             var res = await bm.GetDeviceCharacteristics(deviceId, gsUuid.ToString());
@@ -101,7 +101,7 @@ namespace ConnectivityServer.Common.Tests.Services.BLE
                 Name = "some-device-name"
             };
 
-            var bm = new BleManager(new[] { bleAdapter }, null);
+            var bm = new BleManager(new[] { bleAdapter }, null, null);
             bleAdapter.SetGetGattServices(device, new[] { gs });
             bleAdapter.WriteToCharacteristicResult = writeResult;
             var res = await bm.WriteToCharacteristric(deviceId, gattServiceId, characteristicId, new List<byte>());
@@ -126,7 +126,7 @@ namespace ConnectivityServer.Common.Tests.Services.BLE
                 Name = "some-device-name"
             };
 
-            var bm = new BleManager(new[] { bleAdapter }, null);
+            var bm = new BleManager(new[] { bleAdapter }, null, null);
             bleAdapter.SetGetGattServices(device, new[] { gs });
             bleAdapter.ReadFromCharacteristicResult = readResult;
             var res = await bm.ReadFromCharacteristic(deviceId, gattServiceId, characteristicId);
@@ -162,7 +162,7 @@ namespace ConnectivityServer.Common.Tests.Services.BLE
                 Name = "some-device-name"
             };
 
-            var bm = new BleManager(new[] { bleAdapter }, null);
+            var bm = new BleManager(new[] { bleAdapter }, null, null);
             bleAdapter.SetGetGattServices(device, new[] { gs });
             bleAdapter.BleNotificationResult = readResult;
             var res = await bm.RegisterToCharacteristicNotifications(deviceId, gattServiceId, characteristicId);
@@ -235,10 +235,16 @@ namespace ConnectivityServer.Common.Tests.Services.BLE
             d.Name = device.Name;
             d.Id = device.Id;
 
+            dummyAdapter.RaiseDeviceConnectedEvent(device);
+            devices = bm.GetDiscoveredDevices();
+            devices.Count().ShouldBe(1);
+            d = devices.First();
+            d.Name = device.Name;
+            d.Id = device.Id;
+
             dummyAdapter.RaiseDeviceDisconnectedEvent(device);
             devices = bm.GetDiscoveredDevices();
-            devices.Count().ShouldBe(0);
-
+            devices.Count().ShouldBe(1);
         }
 
         [Theory]
@@ -286,6 +292,7 @@ namespace ConnectivityServer.Common.Tests.Services.BLE
         }
 
         public event BleDeviceEventHandler DeviceDiscovered;
+        public event BleDeviceEventHandler DeviceConnected;
         public event BleDeviceEventHandler DeviceDisconnected;
         public event BluetoothDeviceValueChangedEventHandler DeviceValueChanged;
 
@@ -316,6 +323,11 @@ namespace ConnectivityServer.Common.Tests.Services.BLE
         {
             var bdea = new BleDeviceEventArgs(device);
             DeviceDiscovered(this, bdea);
+        }
+        internal void RaiseDeviceConnectedEvent(BleDevice device)
+        {
+            var bdea = new BleDeviceEventArgs(device);
+            DeviceConnected(this, bdea);
         }
         internal void RaiseDeviceDisconnectedEvent(BleDevice device)
         {

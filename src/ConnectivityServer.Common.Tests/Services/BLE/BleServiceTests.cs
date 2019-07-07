@@ -20,16 +20,16 @@ namespace ConnectivityServer.Common.Tests.Services.BLE
             new object[] {new BleDevice[] { }},
         };
 
-        #region BleService_GetDevices
+        #region BleService_GetDiscoveredDevices
 
         [Theory]
         [MemberData(nameof(EmptyBluetooLEDeviceCollection))]
-        public async Task BleServiceTests_GetDevices_ReturnsEmpty(IEnumerable<BleDevice> devices)
+        public async Task BleServiceTests_GetDiscoveredDevices_ReturnsEmpty(IEnumerable<BleDevice> devices)
         {
             var bMgr = new Mock<IBleManager>();
             bMgr.Setup(b => b.GetDiscoveredDevices()).Returns(devices);
             var srv = new BleService(bMgr.Object);
-            var res = await srv.GetDevices();
+            var res = await srv.GetDiscoveredDevices();
             res.ShouldNotBeNull();
             res.Any().ShouldBeFalse();
         }
@@ -47,7 +47,7 @@ namespace ConnectivityServer.Common.Tests.Services.BLE
             var bMgr = new Mock<IBleManager>();
             bMgr.Setup(b => b.GetDiscoveredDevices()).Returns(serviceDevices);
             var srv = new BleService(bMgr.Object);
-            var devices = await srv.GetDevices();
+            var devices = await srv.GetDiscoveredDevices();
             devices.ShouldNotBeNull();
             devices.Count().ShouldBe(serviceDevices.Count());
 
@@ -66,7 +66,7 @@ namespace ConnectivityServer.Common.Tests.Services.BLE
             var bMgr = new Mock<IBleManager>();
             bMgr.Setup(b => b.GetDiscoveredDevices()).Returns(devices);
             var srv = new BleService(bMgr.Object);
-            var res = await srv.GetDeviceById("deviceId");
+            var res = await srv.GetDiscoveredDeviceById("deviceId");
             res.ShouldBeNull();
         }
 
@@ -80,7 +80,7 @@ namespace ConnectivityServer.Common.Tests.Services.BLE
             bMgr.Setup(b => b.GetDiscoveredDevices()).Returns(new[] { bMgrResponse });
             var srv = new BleService(bMgr.Object);
 
-            var res = await srv.GetDeviceById(deviceId);
+            var res = await srv.GetDiscoveredDeviceById(deviceId);
             res.ShouldBe(bMgrResponse);
         }
         #endregion

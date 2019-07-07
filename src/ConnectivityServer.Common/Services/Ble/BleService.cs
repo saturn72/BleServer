@@ -18,14 +18,14 @@ namespace ConnectivityServer.Common.Services.Ble
 
         #endregion
 
-        public async Task<IEnumerable<BleDevice>> GetDevices()
+        public async Task<IEnumerable<BleDevice>> GetDiscoveredDevices()
         {
             return await Task.FromResult(_bluetoothManager.GetDiscoveredDevices() ?? new BleDevice[] { });
         }
 
-        public virtual async Task<BleDevice> GetDeviceById(string deviceId)
+        public virtual async Task<BleDevice> GetDiscoveredDeviceById(string deviceId)
         {
-            var allDevices = await GetDevices();
+            var allDevices = await GetDiscoveredDevices();
             return allDevices.FirstOrDefault(x => x.Id == deviceId);
         }
 
@@ -33,7 +33,7 @@ namespace ConnectivityServer.Common.Services.Ble
         {
             var serviceResponse = new ServiceResponse<IEnumerable<BleGattService>>();
 
-            var device = await GetDeviceById(deviceId);
+            var device = await GetDiscoveredDeviceById(deviceId);
             if (device == null)
             {
                 serviceResponse.Result = ServiceResponseResult.NotFound;

@@ -19,14 +19,14 @@ namespace ConnectivityServer.WebApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllDiscoveredDevices()
         {
-            var devices = await _blutoothservice.GetDevices() ?? new BleDevice[] { };
+            var devices = await _blutoothservice.GetDiscoveredDevices() ?? new BleDevice[] { };
             return Ok(devices);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetDeviceById(string id)
         {
-            var device = await _blutoothservice.GetDeviceById(id);
+            var device = await _blutoothservice.GetDiscoveredDeviceById(id);
             return device != null
                 ? Ok(device)
                 : NotFound(new

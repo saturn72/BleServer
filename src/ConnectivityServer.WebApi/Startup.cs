@@ -2,8 +2,11 @@
 using ConnectivityServer.Common.Services.Ble;
 using ConnectivityServer.Common.Services.Notifications;
 using ConnectivityServer.Modules.Win10BleAdapter;
+using EasyCaching.Core;
+using EasyCaching.InMemory;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
@@ -22,6 +25,18 @@ namespace ConnectivityServer.WebApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddEasyCaching(options => {
+                options.UseInMemory(config =>
+                {
+                    config.DBConfig = new InMemoryCachingOptions
+                    {
+                         ExpirationScanFrequency = 1,
+                    };
+                     config.MaxRdSecond = 0;
+                     config.EnableLogging = true;
+                     config.SleepMs = 300;
+                }, "default");
+            });
             services.AddMvc();
             services.AddSignalR(options => options.EnableDetailedErrors = true);
             services.AddSingleton<MessageHub>();
@@ -30,8 +45,7 @@ namespace ConnectivityServer.WebApi
             var win10BleAdapter = new Win10BleAdapter();
             win10BleAdapter.Start();
             services.AddSingleton<IBleAdapter>(win10BleAdapter);
-            services.AddSingleton<IBleManager>(sr => new BleManager(new[] { win10BleAdapter }, sr.GetService<INotifier>()));
-
+            services.AddSingleton<IBleManager>(sp => new BleManager(new[] { win10BleAdapter }, sp.GetService<INotifier>(), sp.GetService<IEasyCachingProvider>()));
             services.AddScoped<IBleService, BleService>();
 
             services.AddSwaggerGen(c =>

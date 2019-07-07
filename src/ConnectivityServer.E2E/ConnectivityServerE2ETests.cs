@@ -1,8 +1,12 @@
 
 using System;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -11,13 +15,14 @@ using Shouldly;
 namespace ConnectivityServer.E2E
 {
     [TestFixture]
-    public class BleTxRxTests
+    public class ConnectivityServerE2ETests
     {
         private const string Rx = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
         private const string Tx = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
         private const string CharacteristicUri = "/api/ble/Characteristic/";
         private const string ServiceUuid = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
-        private const string DeviceName = "Automation BLE test";
+        //        private const string DeviceName = "Automation BLE test";
+        private const string DeviceName = "S2700-0008";
         private string _deviceUuid;
         private HttpClient _client;
 
@@ -32,7 +37,64 @@ namespace ConnectivityServer.E2E
             var deviceContent = await deviceRes.Content.ReadAsStringAsync();
             var allDevices = JArray.Parse(deviceContent);
             var d = allDevices.FirstOrDefault(x => x["name"].Value<string>().ToLower() == DeviceName.ToLower());
-            _deviceUuid = d["id"].Value<string>();
+            _deviceUuid = d?["id"].Value<string>();
+
+        }
+
+        [Test]
+        public async Task TurnOnOffTest([Range(0, 1000)] int iteration)
+        {
+            Console.WriteLine("Iteration #" + iteration);
+            var pressFlag = "-u";
+            var releaseFlag = "-d";
+            var ykushUsbPort = 1;
+            var currentLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var ykushCmdPath = Path.Combine(currentLocation, @"libs\ykushcmd\bin\ykushcmd.exe");
+
+            //turn off cycle
+            var pressPsi = new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = $@"/C {ykushCmdPath} {pressFlag} {ykushUsbPort}",
+            };
+            var releasePsi = new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = $@"/C {ykushCmdPath} {releaseFlag} {ykushUsbPort}",
+            };
+
+            var turnOffPressProcess = Process.Start(pressPsi);
+            await Task.Run(() => turnOffPressProcess.WaitForExit());
+            Thread.Sleep(4000);
+
+            var turnOffReleaseProcess = Process.Start(releasePsi);
+            await Task.Run(() => turnOffReleaseProcess.WaitForExit());
+            Thread.Sleep(5000);
+
+            var deviceRes = await _client.GetAsync("api/ble/device");
+            var deviceContent = await deviceRes.Content.ReadAsStringAsync();
+            var allDevices = JArray.Parse(deviceContent);
+            var d = allDevices.FirstOrDefault(x => x["name"].Value<string>().ToLower() == DeviceName.ToLower());
+            _deviceUuid = d?["id"].Value<string>();
+            _deviceUuid.ShouldBeNullOrEmpty();
+
+            //turn on cycle
+            var turnOnPressProcess = Process.Start(pressPsi);
+            await Task.Run(() => turnOnPressProcess.WaitForExit());
+            Thread.Sleep(3500);
+
+            var turnOnReleaseProcess = Process.Start(releasePsi);
+            await Task.Run(() => turnOnReleaseProcess.WaitForExit());
+            Thread.Sleep(3500);
+
+            deviceRes = await _client.GetAsync("api/ble/device");
+            deviceContent = await deviceRes.Content.ReadAsStringAsync();
+            allDevices = JArray.Parse(deviceContent);
+            d = allDevices.FirstOrDefault(x => x["name"].Value<string>().ToLower() == DeviceName.ToLower());
+            _deviceUuid = d?["id"].Value<string>();
+            _deviceUuid.ShouldNotBeNullOrEmpty();
+
+
 
         }
         [Test]
@@ -41,7 +103,7 @@ namespace ConnectivityServer.E2E
         {
             var notifyBody = new
             {
-                deviceUuid,
+                deviceUuid = _deviceUuid,
                 serviceUuid = "6e400001-b5a3-f393-e0a9-e50e24dcca9e",
                 characteristicUuid = Tx
             };

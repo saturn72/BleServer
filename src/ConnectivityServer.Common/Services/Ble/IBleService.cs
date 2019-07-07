@@ -6,8 +6,8 @@ namespace ConnectivityServer.Common.Services.Ble
 {
     public interface IBleService
     {
-        Task<IEnumerable<BleDevice>> GetDevices();
-        Task<BleDevice> GetDeviceById(string deviceId);
+        Task<IEnumerable<BleDevice>> GetDiscoveredDevices();
+        Task<BleDevice> GetDiscoveredDeviceById(string deviceId);
         Task<ServiceResponse<IEnumerable<BleGattService>>> GetGattServicesByDeviceId(string deviceId);
         Task<bool> UnpairDeviceById(string deviceId);
 

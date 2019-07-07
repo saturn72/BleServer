@@ -18,7 +18,7 @@ namespace ConnectivityServer.Modules.Win10BleAdapter
     {
         public async Task<bool> Unpair(string deviceId)
         {
-            var d = _devices[deviceId];
+            var d = _connectedDevices[deviceId];
             var unpairingResult = await d.DeviceInformation.Pairing.UnpairAsync();
             var result = unpairingResult.Status == DeviceUnpairingResultStatus.AlreadyUnpaired ||
                          unpairingResult.Status == DeviceUnpairingResultStatus.Unpaired;
@@ -33,7 +33,7 @@ namespace ConnectivityServer.Modules.Win10BleAdapter
 
         public async Task<IEnumerable<BleGattService>> GetGattServices(string deviceUuid)
         {
-            var gattDeviceServices = await _devices[deviceUuid].GetGattServicesAsync();
+            var gattDeviceServices = await _connectedDevices[deviceUuid].GetGattServicesAsync();
             var result = new List<BleGattService>();
             foreach (var gds in gattDeviceServices.Services)
                 result.Add(await ExtractDomainModel(gds));
@@ -46,7 +46,7 @@ namespace ConnectivityServer.Modules.Win10BleAdapter
             if (_services.TryGetValue(srvKey, out var service))
                 return service;
 
-            var gattServices = await _devices[deviceUuid].GetGattServicesForUuidAsync(Guid.Parse(serviceUuid), BluetoothCacheMode.Cached);
+            var gattServices = await _connectedDevices[deviceUuid].GetGattServicesForUuidAsync(Guid.Parse(serviceUuid), BluetoothCacheMode.Cached);
             service = gattServices.Services.First();
 
             _services[srvKey] = service;
@@ -54,6 +54,7 @@ namespace ConnectivityServer.Modules.Win10BleAdapter
             return service;
         }
 
+        public event BleDeviceEventHandler DeviceConnected;
         public event BleDeviceEventHandler DeviceDiscovered;
         public event BleDeviceEventHandler DeviceDisconnected;
         public event BluetoothDeviceValueChangedEventHandler DeviceValueChanged;
@@ -153,7 +154,7 @@ namespace ConnectivityServer.Modules.Win10BleAdapter
         #region fields
 
         private readonly BluetoothLEAdvertisementWatcher _bleWatcher;
-        private readonly IDictionary<string, BluetoothLEDevice> _devices = new ConcurrentDictionary<string, BluetoothLEDevice>();
+        private readonly IDictionary<string, BluetoothLEDevice> _connectedDevices = new ConcurrentDictionary<string, BluetoothLEDevice>();
         private readonly IDictionary<string, GattCharacteristic> _characteristics = new Dictionary<string, GattCharacteristic>();
         private readonly IDictionary<string, GattDeviceService> _services = new Dictionary<string, GattDeviceService>();
 
@@ -183,19 +184,27 @@ namespace ConnectivityServer.Modules.Win10BleAdapter
 
                 lock (lockObj)
                 {
-                    if (!_devices.ContainsKey(bleDeviceId))
-                        _devices[bleDeviceId] = bleDevice;
+                    if (!_connectedDevices.ContainsKey(bleDeviceId))
+                        _connectedDevices[bleDeviceId] = bleDevice;
                 }
 
-                OnDeviceDiscovered(new BleDeviceEventArgs(bleDevice.ToDomainModel()));
+                DeviceDiscovered?.Invoke(this, new BleDeviceEventArgs(bleDevice.ToDomainModel()));
                 bleDevice.ConnectionStatusChanged += RemoveDevicefromCollectionndPublishEvent;
             };
             return bleWatcher;
         }
         private void RemoveDevicefromCollectionndPublishEvent(BluetoothLEDevice sender, object args)
         {
+            if (sender.ConnectionStatus == BluetoothConnectionStatus.Connected &&
+               _connectedDevices.ContainsKey(sender.DeviceId))
+            {
+                _connectedDevices[sender.DeviceId] = sender;
+                DeviceConnected?.Invoke(this, new BleDeviceEventArgs(sender.ToDomainModel()));
+                return;
+            }
+
             if (sender.ConnectionStatus == BluetoothConnectionStatus.Disconnected &&
-                _devices.ContainsKey(sender.DeviceId))
+                _connectedDevices.ContainsKey(sender.DeviceId))
             {
                 ClearDevice(sender.DeviceId);
                 OnDeviceDisconnected(new BleDeviceEventArgs(sender.ToDomainModel()));
@@ -211,12 +220,7 @@ namespace ConnectivityServer.Modules.Win10BleAdapter
             for (int i = 0; i < servicesToRemove.Count(); i++)
                 _services.Remove(servicesToRemove.ElementAt(i));
 
-            _devices.Remove(deviceId);
-        }
-
-        protected virtual void OnDeviceDiscovered(BleDeviceEventArgs args)
-        {
-            DeviceDiscovered?.Invoke(this, args);
+            _connectedDevices.Remove(deviceId);
         }
         protected virtual void OnDeviceDisconnected(BleDeviceEventArgs args)
         {

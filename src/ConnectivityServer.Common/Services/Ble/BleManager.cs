@@ -1,36 +1,43 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ConnectivityServer.Common.Models;
 using ConnectivityServer.Common.Services.Notifications;
+using EasyCaching.Core;
 
 namespace ConnectivityServer.Common.Services.Ble
 {
     public partial class BleManager : IBleManager
     {
-        private readonly INotifier _onDeviceValueChangedNotifier;
-
         #region Fields
-
+        private const string DiscoveredDeviceChachePrefix = "discovereddevice-";
         private object lockObject = new object();
+
+        private readonly INotifier _onDeviceValueChangedNotifier;
+        private readonly IEasyCachingProvider _cachingProvider;
+
+        private static readonly TimeSpan DiscoveredDeviceCachingTime = TimeSpan.FromMilliseconds(5000);
+
         protected readonly IDictionary<string, ProxiedBleDevice> Devices = new Dictionary<string, ProxiedBleDevice>();
         #endregion
 
         #region ctor
 
-        public BleManager(IEnumerable<IBleAdapter> bleAdapters, INotifier onDeviceValueChangedNotifier)
+        public BleManager(IEnumerable<IBleAdapter> bleAdapters, INotifier onDeviceValueChangedNotifier, IEasyCachingProvider cachingProvider)
         {
+            _cachingProvider = cachingProvider;
             _onDeviceValueChangedNotifier = onDeviceValueChangedNotifier;
 
             foreach (var adapter in bleAdapters)
             {
+                adapter.DeviceConnected += DeviceConnectedHandler;
                 adapter.DeviceDiscovered += DeviceDiscoveredHandler;
                 adapter.DeviceDisconnected += DeviceDisconnectedHandler;
                 adapter.DeviceValueChanged += DeviceValueChangedHandler;
             }
         }
-
-        private void DeviceDiscoveredHandler(IBleAdapter sender, BleDeviceEventArgs args)
+        private void DeviceConnectedHandler(IBleAdapter sender, BleDeviceEventArgs args)
         {
             var device = args.Device;
             var deviceId = device.Id;
@@ -40,6 +47,13 @@ namespace ConnectivityServer.Common.Services.Ble
                     Devices[deviceId] = new ProxiedBleDevice(sender, device);
             }
         }
+        private void DeviceDiscoveredHandler(IBleAdapter sender, BleDeviceEventArgs args)
+        {
+            var device = args.Device;
+            var deviceId = device.Id;
+            var pd = new ProxiedBleDevice(sender, device);
+            _cachingProvider.Set(DiscoveredDeviceChachePrefix + deviceId, pd, DiscoveredDeviceCachingTime);
+        }
         private void DeviceDisconnectedHandler(IBleAdapter sender, BleDeviceEventArgs args)
         {
             var device = args.Device;
@@ -47,9 +61,9 @@ namespace ConnectivityServer.Common.Services.Ble
             lock (lockObject)
             {
                 Devices.Remove(deviceId);
+                _cachingProvider.RemoveByPrefix(DiscoveredDeviceChachePrefix);
             }
         }
-
         private void DeviceValueChangedHandler(IBleAdapter sender, BleDeviceValueChangedEventArgs args)
         {
             Task.Run(() => _onDeviceValueChangedNotifier.Push(args.DeviceUuid, args));
@@ -59,7 +73,7 @@ namespace ConnectivityServer.Common.Services.Ble
 
         public virtual IEnumerable<BleDevice> GetDiscoveredDevices()
         {
-            return Devices.Values.Select(v => v.Device);
+            return _cachingProvider.GetByPrefix< ProxiedBleDevice>(DiscoveredDeviceChachePrefix).Select(v => v.Value.Value.Device);
         }
 
         public async Task<IEnumerable<BleGattService>> GetDeviceGattServices(string deviceId)
