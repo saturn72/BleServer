@@ -9,7 +9,7 @@ namespace ConnectivityServer.Common.Services.Ble
         IEnumerable<BleDevice> GetDiscoveredDevices();
         Task<IEnumerable<BleGattService>> GetDeviceGattServices(string deviceId);
         Task<IEnumerable<BleGattCharacteristic>> GetDeviceCharacteristics(string deviceUuid, string serviceUuid);
-        Task<bool> Unpair(string deviceUuid);
+        Task<bool> Disconnect(string deviceUuid);
         Task<bool> WriteToCharacteristric(string deviceUuid, string serviceUuid, string characteristicUuid, IEnumerable<byte> buffer);
         Task<IEnumerable<byte>> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid);
         Task<bool> RegisterToCharacteristicNotifications(string deviceUuid, string serviceUuid, string characteristicUuid);

@@ -11,7 +11,7 @@ namespace ConnectivityServer.Common.Services.Ble
         event BleDeviceEventHandler DeviceDisconnected;
         event BluetoothDeviceValueChangedEventHandler DeviceValueChanged;
         Task<IEnumerable<BleGattService>> GetGattServices(string deviceUuid);
-        Task<bool> Unpair(string deviceId);
+        Task<bool> Disconnect(string deviceId);
         Task<bool> WriteToCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid, IEnumerable<byte> buffer);
         Task<IEnumerable<byte>> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid);
         Task<bool> GetCharacteristicNotifications(string deviceUuid, string serviceUuid, string characteristicUuid);

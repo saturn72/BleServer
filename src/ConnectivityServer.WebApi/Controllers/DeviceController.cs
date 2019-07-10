@@ -44,7 +44,7 @@ namespace ConnectivityServer.WebApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DisconnectDeviceById(string id)
         {
-            var wasDisconnected = await _blutoothservice.UnpairDeviceById(id);
+            var wasDisconnected = await _blutoothservice.DisconnectDeviceById(id);
             return wasDisconnected
                 ? Accepted()
                 : StatusCode((int)HttpStatusCode.NotAcceptable, new

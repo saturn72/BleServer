@@ -138,5 +138,36 @@ namespace ConnectivityServer.E2E
             var readBytes = Convert.FromBase64String(readContent.ToString());
             Encoding.UTF8.GetString(readBytes).ShouldBe(stringBuffer);
         }
+
+        [Test]
+        public async Task PairUnpair([Range(0,100)] int iteration)
+        {
+            Console.WriteLine($"Iteration #{iteration}");
+            Thread.Sleep(6000);
+
+            const string testDeviceName = "Automation BLE test";
+
+            var deviceRes = await _client.GetAsync("api/ble/device");
+            var deviceContent = await deviceRes.Content.ReadAsStringAsync();
+            var allDevices = JArray.Parse(deviceContent);
+            var d = allDevices.FirstOrDefault(x => x["name"].Value<string>().ToLower() == testDeviceName.ToLower());
+            var deviceUuid = d?["id"].Value<string>();
+
+            var stringBuffer = "Roi Shabtai";
+            var byteBuffer = Encoding.UTF8.GetBytes(stringBuffer);
+            var writeBody = new
+            {
+                deviceUuid,
+                serviceUuid = "6e400001-b5a3-f393-e0a9-e50e24dcca9e",
+                characteristicUuid = Rx,
+                buffer = byteBuffer
+            };
+
+            var res = await _client.PostAsJsonAsync(CharacteristicUri + "rx", writeBody);
+            res.EnsureSuccessStatusCode();
+
+            res = await _client.DeleteAsync("/api/ble/device/" + deviceUuid);
+            res.EnsureSuccessStatusCode();
+        }
     }
 }

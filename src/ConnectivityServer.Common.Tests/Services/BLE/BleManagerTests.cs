@@ -49,7 +49,7 @@ namespace ConnectivityServer.Common.Tests.Services.BLE
                 Name = "some-device-name"
             };
 
-            var bm = new BleManager(new[] { bleAdapter }, null);
+            var bm = new BleManager(new[] { bleAdapter }, null, null);
             bleAdapter.SetGetGattServices(device, new[] { gs });
 
             var task = bm.GetDeviceCharacteristics(deviceId, "not-exists-gatt-service-id");
@@ -187,7 +187,7 @@ namespace ConnectivityServer.Common.Tests.Services.BLE
             };
 
             var notifier = new Mock<INotifier>();
-            var bm = new BleManager(new[] { bleAdapter }, notifier.Object);
+            var bm = new BleManager(new[] { bleAdapter }, notifier.Object, null);
             bleAdapter.SetGetGattServices(device, new[] { gs });
 
             bleAdapter.RaiseDeviceValueChangedEvent(deviceUuid, serviceUuid, characteristicUuid, message);
@@ -221,7 +221,7 @@ namespace ConnectivityServer.Common.Tests.Services.BLE
         {
             var dummyAdapter = new DummyBleAdapter();
 
-            var bm = new BleManager(new[] { dummyAdapter }, null);
+            var bm = new BleManager(new[] { dummyAdapter }, null, null);
             var device = new BleDevice
             {
                 Id = "some-device-id",
@@ -252,16 +252,16 @@ namespace ConnectivityServer.Common.Tests.Services.BLE
         [InlineData(false)]
         public async Task BleManager_Unpair(bool expUnpairResult)
         {
-            var dummyAdapter = new DummyBleAdapter { UnpairResult = expUnpairResult };
+            var dummyAdapter = new DummyBleAdapter { DisconnectResult = expUnpairResult };
 
-            var bm = new BleManager(new[] { dummyAdapter }, null);
+            var bm = new BleManager(new[] { dummyAdapter }, null, null);
             var device = new BleDevice
             {
                 Id = "some-device-id_" + DateTime.Now.ToString("yyyy-MMMM-dd_hh:mm:ss.fffZ"),
                 Name = "Some-device-Uuid"
             };
             dummyAdapter.RaiseDeviceDiscoveredEvent(device);
-            var unpairResult = await bm.Unpair(device.Id);
+            var unpairResult = await bm.Disconnect(device.Id);
             unpairResult.ShouldBe(expUnpairResult);
         }
     }
@@ -284,11 +284,11 @@ namespace ConnectivityServer.Common.Tests.Services.BLE
             return Task.FromResult(_gattServices[deviceUuid]);
         }
 
-        internal bool UnpairResult { get; set; }
+        internal bool DisconnectResult { get; set; }
 
-        public Task<bool> Unpair(string deviceId)
+        public Task<bool> Disconnect(string deviceId)
         {
-            return Task.FromResult(UnpairResult);
+            return Task.FromResult(DisconnectResult);
         }
 
         public event BleDeviceEventHandler DeviceDiscovered;

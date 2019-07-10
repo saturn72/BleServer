@@ -46,7 +46,7 @@ namespace ConnectivityServer.WebApi
             win10BleAdapter.Start();
             services.AddSingleton<IBleAdapter>(win10BleAdapter);
             services.AddSingleton<IBleManager>(sp => new BleManager(new[] { win10BleAdapter }, sp.GetService<INotifier>(), sp.GetService<IEasyCachingProvider>()));
-            services.AddScoped<IBleService, BleService>();
+            services.AddSingleton<IBleService, BleService>();
 
             services.AddSwaggerGen(c =>
             {

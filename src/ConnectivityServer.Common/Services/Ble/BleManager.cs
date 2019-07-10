@@ -5,13 +5,17 @@ using System.Threading.Tasks;
 using ConnectivityServer.Common.Models;
 using ConnectivityServer.Common.Services.Notifications;
 using EasyCaching.Core;
+using Polly;
+using Polly.Retry;
 
 namespace ConnectivityServer.Common.Services.Ble
 {
     public partial class BleManager : IBleManager
     {
         #region Fields
-        private const string DiscoveredDeviceChachePrefix = "discovereddevice-";
+        private const string DiscoveredDeviceCachePrefix = "discovereddevice-";
+        private const int TotalPolicyTime = 6000;
+        private const int PolicySleepDuration = 1500;
         private object lockObject = new object();
 
         private readonly INotifier _onDeviceValueChangedNotifier;
@@ -20,6 +24,8 @@ namespace ConnectivityServer.Common.Services.Ble
         private static readonly TimeSpan DiscoveredDeviceCachingTime = TimeSpan.FromMilliseconds(5000);
 
         protected readonly IDictionary<string, ProxiedBleDevice> Devices = new Dictionary<string, ProxiedBleDevice>();
+        private static readonly AsyncRetryPolicy<CacheValue<ProxiedBleDevice>> GetCachedProxiedBleDevicePolicy = Policy.HandleResult<CacheValue<ProxiedBleDevice>>(pbd => pbd?.Value == null)
+                .WaitAndRetryAsync(TotalPolicyTime / PolicySleepDuration, i => TimeSpan.FromMilliseconds(PolicySleepDuration));
         #endregion
 
         #region ctor
@@ -52,7 +58,7 @@ namespace ConnectivityServer.Common.Services.Ble
             var device = args.Device;
             var deviceId = device.Id;
             var pd = new ProxiedBleDevice(sender, device);
-            _cachingProvider.Set(DiscoveredDeviceChachePrefix + deviceId, pd, DiscoveredDeviceCachingTime);
+            _cachingProvider.Set(GetDeviceCacheKey(deviceId), pd, DiscoveredDeviceCachingTime);
         }
         private void DeviceDisconnectedHandler(IBleAdapter sender, BleDeviceEventArgs args)
         {
@@ -61,7 +67,7 @@ namespace ConnectivityServer.Common.Services.Ble
             lock (lockObject)
             {
                 Devices.Remove(deviceId);
-                _cachingProvider.RemoveByPrefix(DiscoveredDeviceChachePrefix);
+                _cachingProvider.RemoveByPrefix(DiscoveredDeviceCachePrefix);
             }
         }
         private void DeviceValueChangedHandler(IBleAdapter sender, BleDeviceValueChangedEventArgs args)
@@ -73,7 +79,7 @@ namespace ConnectivityServer.Common.Services.Ble
 
         public virtual IEnumerable<BleDevice> GetDiscoveredDevices()
         {
-            return _cachingProvider.GetByPrefix< ProxiedBleDevice>(DiscoveredDeviceChachePrefix).Select(v => v.Value.Value.Device);
+            return _cachingProvider.GetByPrefix<ProxiedBleDevice>(DiscoveredDeviceCachePrefix).Select(v => v.Value.Value.Device);
         }
 
         public async Task<IEnumerable<BleGattService>> GetDeviceGattServices(string deviceId)
@@ -88,30 +94,44 @@ namespace ConnectivityServer.Common.Services.Ble
             return gattService.Characteristics;
         }
 
-        public async Task<bool> Unpair(string deviceUuid)
+        public async Task<bool> Disconnect(string deviceUuid)
         {
-            var res = await Devices[deviceUuid].Adapter.Unpair(deviceUuid);
-            if (res)
-                Devices.Remove(deviceUuid);
-            return res;
+            return Devices.TryGetValue(deviceUuid, out ProxiedBleDevice pbd)
+                && await pbd.Adapter.Disconnect(deviceUuid);
         }
 
         public async Task<bool> WriteToCharacteristric(string deviceUuid, string serviceUuid, string characteristicUuid, IEnumerable<byte> buffer)
         {
-            var bleAdapter = Devices[deviceUuid].Adapter;
+            var bleAdapter = await GetAdapterByDeviceId(deviceUuid);
             return await bleAdapter.WriteToCharacteristic(deviceUuid, serviceUuid, characteristicUuid, buffer);
         }
 
         public async Task<IEnumerable<byte>> ReadFromCharacteristic(string deviceUuid, string serviceUuid, string characteristicUuid)
         {
-            var bleAdapter = Devices[deviceUuid].Adapter;
+            var bleAdapter = await GetAdapterByDeviceId(deviceUuid);
             return await bleAdapter.ReadFromCharacteristic(deviceUuid, serviceUuid, characteristicUuid);
         }
+        private async Task<IBleAdapter> GetAdapterByDeviceId(string deviceUuid)
+        {
+            if (!Devices.TryGetValue(deviceUuid, out ProxiedBleDevice pbd))
+            {
+                var cm = await GetCachedProxiedBleDevicePolicy.ExecuteAsync(() => _cachingProvider.GetAsync<ProxiedBleDevice>(GetDeviceCacheKey(deviceUuid)));
+                pbd = cm.Value;
+                if (pbd != null)
+                    Devices[deviceUuid] = pbd;
+            }
+            return pbd?.Adapter;
+        }
+        private string GetDeviceCacheKey(string deviceUuid)
+        {
+            return DiscoveredDeviceCachePrefix + deviceUuid;
+        }
+
 
 
         public async Task<bool> RegisterToCharacteristicNotifications(string deviceUuid, string serviceUuid, string characteristicUuid)
         {
-            var bleAdapter = Devices[deviceUuid].Adapter;
+            var bleAdapter = await GetAdapterByDeviceId(deviceUuid);
             return await bleAdapter.GetCharacteristicNotifications(deviceUuid, serviceUuid, characteristicUuid);
         }
     }

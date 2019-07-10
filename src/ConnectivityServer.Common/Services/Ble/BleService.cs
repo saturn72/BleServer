@@ -65,9 +65,9 @@ namespace ConnectivityServer.Common.Services.Ble
             return response;
         }
 
-        public Task<bool> UnpairDeviceById(string deviceId)
+        public Task<bool> DisconnectDeviceById(string deviceId)
         {
-            return _bluetoothManager.Unpair(deviceId);
+            return _bluetoothManager.Disconnect(deviceId);
         }
 
         public async Task<ServiceResponse<IEnumerable<byte>>> WriteToCharacteristic(string deviceUuid,

@@ -172,10 +172,10 @@ namespace ConnectivityServer.Common.Tests.Services.BLE
         public async Task BleServiceTests_Unpair(bool expUnpairResult)
         {
             var bleMock = new Mock<IBleManager>();
-            bleMock.Setup(b => b.Unpair(It.IsAny<string>())).ReturnsAsync(expUnpairResult);
+            bleMock.Setup(b => b.Disconnect(It.IsAny<string>())).ReturnsAsync(expUnpairResult);
             var srv = new BleService(bleMock.Object);
 
-            var res = await srv.UnpairDeviceById("some-device-id");
+            var res = await srv.DisconnectDeviceById("some-device-id");
             res.ShouldBe(expUnpairResult);
         }
 

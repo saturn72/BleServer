@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ConnectivityServer.WebApi.Controllers
 {
-    [Route("api/ble/[controller]")]
+    [Route("api/ble/characteristic")]
     public class CharacteristicController : Controller
     {
         private readonly IBleService _blutoothService;
