@@ -20,7 +20,7 @@ namespace ConnectivityServer.WebApi.Controllers
         /// <summary>
         ///     Write to secific characteristics
         /// </summary>
-        [HttpPost("rx")]
+        [HttpPost("tx")]
         [ProducesResponseType(typeof(object), (int)HttpStatusCode.BadRequest)] // bad or missing data: . msiind Id's
         [ProducesResponseType(typeof(object), (int)HttpStatusCode.NotAcceptable)] //device disconnectws
         [ProducesResponseType(typeof(object), (int)HttpStatusCode.Accepted)] // everything's OK
@@ -44,7 +44,7 @@ namespace ConnectivityServer.WebApi.Controllers
         /// <summary>
         ///     Write to secific characteristics
         /// </summary>
-        [HttpPost("tx")]
+        [HttpPost("rx")]
         [ProducesResponseType(typeof(object), (int)HttpStatusCode.BadRequest)] // bad or missing data: . msiind Id's
         [ProducesResponseType(typeof(object), (int)HttpStatusCode.NotAcceptable)] //device disconnectws
         [ProducesResponseType(typeof(object), (int)HttpStatusCode.Accepted)] // everything's OK

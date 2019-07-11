@@ -120,7 +120,7 @@ namespace ConnectivityServer.E2E
                 buffer = byteBuffer
             };
 
-            res = await _client.PostAsJsonAsync(CharacteristicUri + "rx", writeBody);
+            res = await _client.PostAsJsonAsync(CharacteristicUri + "tx", writeBody);
             res.EnsureSuccessStatusCode();
             var writeContent = await res.Content.ReadAsAsync<byte[]>();
             writeContent.ShouldBe(byteBuffer);
@@ -132,7 +132,7 @@ namespace ConnectivityServer.E2E
                 serviceUuid = "6e400001-b5a3-f393-e0a9-e50e24dcca9e",
                 characteristicUuid = Tx
             };
-            res = await _client.PostAsJsonAsync(CharacteristicUri + "tx", readBody);
+            res = await _client.PostAsJsonAsync(CharacteristicUri + "rx", readBody);
             res.EnsureSuccessStatusCode();
             var readContent = await res.Content.ReadAsAsync<object>();
             var readBytes = Convert.FromBase64String(readContent.ToString());

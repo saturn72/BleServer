@@ -16,6 +16,18 @@ namespace ConnectivityServer.Modules.Win10BleAdapter
 {
     public class Win10BleAdapter : IBleAdapter
     {
+
+        #region fields
+
+        private readonly BluetoothLEAdvertisementWatcher _bleWatcher;
+        private static readonly IDictionary<string, BluetoothLEDevice> _devices = new ConcurrentDictionary<string, BluetoothLEDevice>();
+        private static readonly IDictionary<string, GattCharacteristic> _characteristics = new Dictionary<string, GattCharacteristic>();
+        private static readonly IDictionary<string, GattDeviceService> _services = new Dictionary<string, GattDeviceService>();
+
+        private readonly object lockObj = new object();
+
+        #endregion
+
         public async Task<bool> Disconnect(string deviceId)
         {
             var bleDevice = _devices[deviceId];
@@ -85,7 +97,7 @@ namespace ConnectivityServer.Modules.Win10BleAdapter
             using (var writer = new DataWriter())
             {
                 writer.WriteBytes(buffer.ToArray());
-                var status = await characteristic.WriteValueAsync(writer.DetachBuffer(), GattWriteOption.WriteWithResponse);
+                var status = await characteristic.WriteValueAsync(writer.DetachBuffer(), GattWriteOption.WriteWithoutResponse);
                 return status == GattCommunicationStatus.Success;
             }
         }
@@ -95,7 +107,7 @@ namespace ConnectivityServer.Modules.Win10BleAdapter
         {
             var chKey = $"{deviceUuid}_{serviceUuid}_{characteristicUuid}";
 
-            if (_characteristics.TryGetValue(chKey, out var characteristic))
+            if (_characteristics.TryGetValue(chKey, out var characteristic) && characteristic.Service.Session.SessionStatus == GattSessionStatus.Active)
                 return characteristic;
 
             var service = await GetGattServiceByUuid(deviceUuid, serviceUuid);
@@ -114,7 +126,8 @@ namespace ConnectivityServer.Modules.Win10BleAdapter
                     GattClientCharacteristicConfigurationDescriptorValue.Notify);
             var result = status == GattCommunicationStatus.Success;
 
-            if (result) readCharacteristic.ValueChanged += ProcessAndNotify;
+            if (result)
+                readCharacteristic.ValueChanged += ProcessAndNotify;
 
             return result;
         }
@@ -133,7 +146,7 @@ namespace ConnectivityServer.Modules.Win10BleAdapter
                 sender.Uuid.ToString(),
                 newValue);
 
-            OnValueChanged(valueChanged);
+            DeviceValueChanged?.Invoke(this, valueChanged);
         }
 
         public void Start()
@@ -154,16 +167,6 @@ namespace ConnectivityServer.Modules.Win10BleAdapter
             };
         }
 
-        #region fields
-
-        private readonly BluetoothLEAdvertisementWatcher _bleWatcher;
-        private readonly IDictionary<string, BluetoothLEDevice> _devices = new ConcurrentDictionary<string, BluetoothLEDevice>();
-        private readonly IDictionary<string, GattCharacteristic> _characteristics = new Dictionary<string, GattCharacteristic>();
-        private readonly IDictionary<string, GattDeviceService> _services = new Dictionary<string, GattDeviceService>();
-
-        private readonly object lockObj = new object();
-
-        #endregion
 
         #region ctor
 
@@ -247,11 +250,6 @@ namespace ConnectivityServer.Modules.Win10BleAdapter
         protected virtual void OnDeviceDisconnected(BleDeviceEventArgs args)
         {
             DeviceDisconnected?.Invoke(this, args);
-        }
-
-        protected virtual void OnValueChanged(BleDeviceValueChangedEventArgs args)
-        {
-            DeviceValueChanged?.Invoke(this, args);
         }
 
         private static async Task<BluetoothLEDevice> ExtractBleDeviceByBluetoothAddress(ulong bluetoothAddres)
