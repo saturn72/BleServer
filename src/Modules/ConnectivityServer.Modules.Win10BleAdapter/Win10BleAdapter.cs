@@ -107,8 +107,17 @@ namespace ConnectivityServer.Modules.Win10BleAdapter
         {
             var chKey = $"{deviceUuid}_{serviceUuid}_{characteristicUuid}";
 
-            if (_characteristics.TryGetValue(chKey, out var characteristic) && characteristic.Service.Session.SessionStatus == GattSessionStatus.Active)
-                return characteristic;
+            if (_characteristics.TryGetValue(chKey, out var characteristic))
+            {
+                try
+                {
+                    if (characteristic.Service.Session.SessionStatus == GattSessionStatus.Active)
+                        return characteristic;
+                }
+                catch (ObjectDisposedException)
+                {
+                }
+            }
 
             var service = await GetGattServiceByUuid(deviceUuid, serviceUuid);
             var allCharacteristics = await service.GetCharacteristicsForUuidAsync(Guid.Parse(characteristicUuid), BluetoothCacheMode.Cached);

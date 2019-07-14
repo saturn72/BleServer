@@ -29,5 +29,10 @@ namespace ConnectivityServer.Common.Services.Notifications
 
     public class MessageHub : Hub
     {
+        public override Task OnConnectedAsync()
+        {
+            var cId = Context.ConnectionId;
+            return base.OnConnectedAsync();
+        }
     }
 }

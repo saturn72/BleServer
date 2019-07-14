@@ -79,7 +79,10 @@ namespace ConnectivityServer.Common.Services.Ble
 
         public virtual IEnumerable<BleDevice> GetDiscoveredDevices()
         {
-            return _cachingProvider.GetByPrefix<ProxiedBleDevice>(DiscoveredDeviceCachePrefix).Select(v => v.Value.Value.Device);
+            var all = (Devices.Select(d => d.Value.Device) ?? new BleDevice[] { }).ToList();
+            var cached = _cachingProvider.GetByPrefix<ProxiedBleDevice>(DiscoveredDeviceCachePrefix).Select(v => v.Value.Value.Device);
+            all.AddRange(cached);
+            return all?.GroupBy(d => d.Id).Select(grp => grp.First()) ?? new BleDevice[] { };
         }
 
         public async Task<IEnumerable<BleGattService>> GetDeviceGattServices(string deviceId)
